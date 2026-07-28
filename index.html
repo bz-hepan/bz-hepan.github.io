@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>双女八字合盘 · 缘分之轮</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="bg-orbs">
+    <span class="orb orb1"></span>
+    <span class="orb orb2"></span>
+    <span class="orb orb3"></span>
+  </div>
+
+  <header class="site-header">
+    <h1>双女八字合盘</h1>
+    <p class="subtitle">两朵花，合不合得来 · 八字里的缘分与相处</p>
+    <p class="disclaimer-top">仅供娱乐参考，命理玄学无科学依据 🌸</p>
+  </header>
+
+  <main class="container">
+    <!-- 输入区 -->
+    <section class="input-area">
+      <div class="person-card" data-side="A">
+        <div class="person-head"><span class="dot dot-a"></span><h2>命主 · A</h2></div>
+        <label>昵称（可选）
+          <input type="text" id="nameA" placeholder="如：小柔" maxlength="8" />
+        </label>
+        <label>出生日期
+          <input type="date" id="dateA" max="2100-12-31" />
+        </label>
+        <label>出生时辰
+          <select id="timeA">
+            <option value="">不详（时柱按子时估算）</option>
+            <option value="子">子时 23:00–01:00</option>
+            <option value="丑">丑时 01:00–03:00</option>
+            <option value="寅">寅时 03:00–05:00</option>
+            <option value="卯">卯时 05:00–07:00</option>
+            <option value="辰">辰时 07:00–09:00</option>
+            <option value="巳">巳时 09:00–11:00</option>
+            <option value="午">午时 11:00–13:00</option>
+            <option value="未">未时 13:00–15:00</option>
+            <option value="申">申时 15:00–17:00</option>
+            <option value="酉">酉时 17:00–19:00</option>
+            <option value="戌">戌时 19:00–21:00</option>
+            <option value="亥">亥时 21:00–23:00</option>
+          </select>
+        </label>
+        <label>你们的关系
+          <select id="relA">
+            <option value="恋人">恋人 / 情侣</option>
+            <option value="闺蜜">闺蜜 / 知己</option>
+            <option value="搭档">事业搭档</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="person-card" data-side="B">
+        <div class="person-head"><span class="dot dot-b"></span><h2>命主 · B</h2></div>
+        <label>昵称（可选）
+          <input type="text" id="nameB" placeholder="如：阿岚" maxlength="8" />
+        </label>
+        <label>出生日期
+          <input type="date" id="dateB" max="2100-12-31" />
+        </label>
+        <label>出生时辰
+          <select id="timeB">
+            <option value="">不详（时柱按子时估算）</option>
+            <option value="子">子时 23:00–01:00</option>
+            <option value="丑">丑时 01:00–03:00</option>
+            <option value="寅">寅时 03:00–05:00</option>
+            <option value="卯">卯时 05:00–07:00</option>
+            <option value="辰">辰时 07:00–09:00</option>
+            <option value="巳">巳时 09:00–11:00</option>
+            <option value="午">午时 11:00–13:00</option>
+            <option value="未">未时 13:00–15:00</option>
+            <option value="申">申时 15:00–17:00</option>
+            <option value="酉">酉时 17:00–19:00</option>
+            <option value="戌">戌时 19:00–21:00</option>
+            <option value="亥">亥时 21:00–23:00</option>
+          </select>
+        </label>
+        <label>你们的关系
+          <select id="relB">
+            <option value="恋人">恋人 / 情侣</option>
+            <option value="闺蜜">闺蜜 / 知己</option>
+            <option value="搭档">事业搭档</option>
+            <option value="其他">其他</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <div class="action-row">
+      <button id="calcBtn" class="calc-btn">✦ 开始合盘 ✦</button>
+      <button id="demoBtn" class="ghost-btn" type="button">随机示例</button>
+    </div>
+
+    <div id="errorMsg" class="error-msg" hidden></div>
+
+    <!-- 结果区 -->
+    <section id="result" class="result-area" hidden>
+      <div class="score-hero">
+        <div class="score-ring">
+          <span id="scoreNum">0</span>
+          <small>缘分分</small>
+        </div>
+        <div class="score-meta">
+          <div id="ratingLevel" class="rating-level">—</div>
+          <div id="ratingStars" class="rating-stars"></div>
+          <p id="summaryText" class="summary-text"></p>
+        </div>
+      </div>
+
+      <div class="share-row">
+        <button id="shareBtn" class="ghost-btn" type="button" hidden>📸 保存分享图</button>
+        <span id="shareHint" class="share-hint" hidden>生成中…</span>
+      </div>
+
+      <div class="pillars-wrap">
+        <div class="pillar-card" id="pillarA"></div>
+        <div class="pillar-card" id="pillarB"></div>
+      </div>
+
+      <h3 class="section-title">五维合盘</h3>
+      <div id="dimensions" class="dimensions"></div>
+
+      <div class="advice-box">
+        <h3 class="section-title">相处小锦囊</h3>
+        <ul id="adviceList" class="advice-list"></ul>
+      </div>
+
+      <p class="disclaimer-bottom">本结果由八字排盘与合盘规则自动生成，属于传统文化娱乐范畴，请勿用于人生重大决策。🌷</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">双女八字合盘 · 用温柔的方式，看看你们的缘分</footer>
+
+  <script src="lib/lunar.js"></script>
+  <script src="lib/html2canvas.min.js"></script>
+  <script src="js/bazi.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
