@@ -7,11 +7,14 @@
   'use strict';
 
   // ---- 加载 lunar 库 ----
-  let Lunar = null;
+  let Lunar = null, Solar = null;
   if (typeof window !== 'undefined' && window.Lunar) {
-    Lunar = window.Lunar;
+    Lunar = window.Lunar; Solar = window.Solar;
   } else if (typeof require !== 'undefined') {
-    try { Lunar = require('../lib/lunar.js').Lunar; } catch (e) { /* ignore */ }
+    try {
+      const lib = require('../lib/lunar.js');
+      Lunar = lib.Lunar; Solar = lib.Solar;
+    } catch (e) { /* ignore */ }
   }
 
   // ---- 基础字典 ----
@@ -103,6 +106,34 @@
   ];
   // 五虎遁：年干 → 寅月天干序号
   const WUHU_DUN = { 甲: 2, 己: 2, 乙: 4, 庚: 4, 丙: 6, 辛: 6, 丁: 8, 壬: 8, 戊: 0, 癸: 0 };
+  // 五鼠遁：日干 → 子时天干序号（日上起时）
+  const WUZI_DUN = { 甲: 0, 己: 0, 乙: 2, 庚: 2, 丙: 4, 辛: 4, 丁: 6, 壬: 6, 戊: 8, 癸: 8 };
+  function timeGanZhi(dayGan, zhi) {
+    const start = WUZI_DUN[dayGan];
+    const idx = ZHI.indexOf(zhi);
+    return { gan: GAN[(start + idx) % 10], zhi };
+  }
+
+  // ---- 日柱：独立儒略日公式自算（不依赖 lunar 的 getDayInGanZhi，后者存在跨年偏移 bug）----
+  // 整数儒略日数（Meeus 公式，Gregorian 历）
+  function jdn(y, m, d) {
+    const a = Math.floor((14 - m) / 12);
+    const yy = y + 4800 - a;
+    const mm = m + 12 * a - 3;
+    return d + Math.floor((153 * mm + 2) / 5) + 365 * yy
+      + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+  }
+  // 标定常数 C = 49：经 1995-6-15=丁丑、2008-8-8=庚辰、2024-2-10=甲辰、2000-1-1=戊午 四组权威万年历交叉验证
+  const DAY_C = 49;
+  function solarDayGZ(y, m, d) {
+    const n = (((jdn(y, m, d) + DAY_C) % 60) + 60) % 60;
+    return { gan: GAN[n % 10], zhi: ZHI[n % 12] };
+  }
+  // 用 Date 自动归一化跨月/跨年（晚子时取次日日柱）
+  function dayGZOf(y, m, d) {
+    const t = new Date(Date.UTC(y, m - 1, d));
+    return solarDayGZ(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+  }
 
   function getJieList(y) {
     const L = Lunar.fromYmdHms(y, 1, 1, 0, 0, 0);
@@ -151,9 +182,8 @@
   // ============================================================
   function parseBazi(y, m, d, shichen) {
     if (!Lunar) throw new Error('lunar 库未加载');
-    const hour = SHICHEN_HOUR[shichen] !== undefined ? SHICHEN_HOUR[shichen] : 0;
-    const lunar = Lunar.fromYmdHms(y, m, d, hour, 0, 0);
     const birthYmd = y * 10000 + m * 100 + d;
+    const isLateZi = (shichen === '晚子'); // 23:00–23:59 晚子时，日柱归次日
 
     // 年柱（立春为界）
     const yGZ = yearGanZhi(y, m, d);
@@ -162,15 +192,18 @@
     const baseGanIdx = WUHU_DUN[yGZ.gan];
     const mIdx = ((ZHI.indexOf(mZhi) - ZHI.indexOf('寅')) + 12) % 12;
     const mGan = GAN[(baseGanIdx + mIdx) % 10];
-    // 日柱、时柱用 lunar
-    const dayGZ = lunar.getDayInGanZhi();
-    const timeGZ = lunar.getTimeInGanZhi();
+
+    // 日柱：独立儒略日公式自算（避开 lunar 跨年偏移 bug）；晚子时归次日
+    const dayGZ = isLateZi ? dayGZOf(y, m, d + 1) : dayGZOf(y, m, d);
+    // 时柱：五鼠遁（日上起时）；晚子时支仍为"子"
+    const timeZhi = isLateZi ? '子' : shichen;
+    const timeGZ = timeGanZhi(dayGZ.gan, timeZhi);
 
     const gzArr = [
       { label: '年', gan: yGZ.gan, zhi: yGZ.zhi },
       { label: '月', gan: mGan, zhi: mZhi },
-      { label: '日', gan: dayGZ.charAt(0), zhi: dayGZ.charAt(1) },
-      { label: '时', gan: timeGZ.charAt(0), zhi: timeGZ.charAt(1) }
+      { label: '日', gan: dayGZ.gan, zhi: dayGZ.zhi },
+      { label: '时', gan: timeGZ.gan, zhi: timeGZ.zhi }
     ];
     const pillars = gzArr.map(p => ({
       label: p.label, gan: p.gan, zhi: p.zhi,
