@@ -75,27 +75,110 @@
   // 时辰 → 代表小时
   const SHICHEN_HOUR = { 子: 0, 丑: 2, 寅: 4, 卯: 6, 辰: 8, 巳: 10, 午: 12, 未: 14, 申: 16, 酉: 18, 戌: 20, 亥: 22 };
 
+  // ---- 纳音（六十甲子）----
+  const NAYIN = {
+    '甲子': '海中金', '乙丑': '海中金', '丙寅': '炉中火', '丁卯': '炉中火',
+    '戊辰': '大林木', '己巳': '大林木', '庚午': '路旁土', '辛未': '路旁土',
+    '壬申': '剑锋金', '癸酉': '剑锋金', '甲戌': '山头火', '乙亥': '山头火',
+    '丙子': '涧下水', '丁丑': '涧下水', '戊寅': '城头土', '己卯': '城头土',
+    '庚辰': '白蜡金', '辛巳': '白蜡金', '壬午': '杨柳木', '癸未': '杨柳木',
+    '甲申': '泉中水', '乙酉': '泉中水', '丙戌': '屋上土', '丁亥': '屋上土',
+    '戊子': '霹雳火', '己丑': '霹雳火', '庚寅': '松柏木', '辛卯': '松柏木',
+    '壬辰': '长流水', '癸巳': '长流水', '甲午': '沙中金', '乙未': '沙中金',
+    '丙申': '山下火', '丁酉': '山下火', '戊戌': '平地木', '己亥': '平地木',
+    '庚子': '壁上土', '辛丑': '壁上土', '壬寅': '金箔金', '癸卯': '金箔金',
+    '甲辰': '覆灯火', '乙巳': '覆灯火', '丙午': '天河水', '丁未': '天河水',
+    '戊申': '大驿土', '己酉': '大驿土', '庚戌': '钗钏金', '辛亥': '钗钏金',
+    '壬子': '桑柘木', '癸丑': '桑柘木', '甲寅': '大溪水', '乙卯': '大溪水',
+    '丙辰': '沙中土', '丁巳': '沙中土', '戊午': '天上火', '己未': '天上火',
+    '庚申': '石榴木', '辛酉': '石榴木', '壬戌': '大海水', '癸亥': '大海水'
+  };
+  function naYinOf(gan, zhi) { return NAYIN[gan + zhi] || '未知'; }
+
+  // 月柱起始"节"与对应月支（寅月起立春）
+  const JIE = [
+    ['立春', '寅'], ['惊蛰', '卯'], ['清明', '辰'], ['立夏', '巳'],
+    ['芒种', '午'], ['夏至', '未'], ['立秋', '申'], ['白露', '酉'],
+    ['寒露', '戌'], ['立冬', '亥'], ['大雪', '子'], ['小寒', '丑']
+  ];
+  // 五虎遁：年干 → 寅月天干序号
+  const WUHU_DUN = { 甲: 2, 己: 2, 乙: 4, 庚: 4, 丙: 6, 辛: 6, 丁: 8, 壬: 8, 戊: 0, 癸: 0 };
+
+  function getJieList(y) {
+    const L = Lunar.fromYmdHms(y, 1, 1, 0, 0, 0);
+    const tbl = L.getJieQiTable();
+    if (!tbl) return [];
+    const list = [];
+    JIE.forEach(([name, zhi]) => {
+      const s = tbl[name];
+      if (s && typeof s.getYear === 'function') {
+        list.push({ ymd: s.getYear() * 10000 + s.getMonth() * 100 + s.getDay(), zhi });
+      }
+    });
+    return list;
+  }
+
+  // 节气为界求月支
+  function monthZhi(birthYmd, y) {
+    let all = [];
+    [y - 1, y, y + 1].forEach(yy => { all = all.concat(getJieList(yy)); });
+    all.sort((a, b) => a.ymd - b.ymd);
+    let zhi = '丑';
+    for (let i = 0; i < all.length; i++) {
+      if (all[i].ymd <= birthYmd) zhi = all[i].zhi;
+      else break;
+    }
+    return zhi;
+  }
+
+  // 立春为界求年干支（八字年）
+  function yearGanZhi(y, m, d) {
+    const L = Lunar.fromYmdHms(y, 1, 1, 0, 0, 0);
+    const tbl = L.getJieQiTable();
+    const lc = tbl && tbl['立春'];
+    const lcmd = lc && typeof lc.getYear === 'function'
+      ? lc.getYear() * 10000 + lc.getMonth() * 100 + lc.getDay() : y * 10000 + 2 * 100 + 4;
+    const bymd = y * 10000 + m * 100 + d;
+    const by = bymd >= lcmd ? y : y - 1;
+    const g = GAN[(((by - 4) % 10) + 10) % 10];
+    const z = ZHI[(((by - 4) % 12) + 12) % 12];
+    return { gan: g, zhi: z, year: by };
+  }
+
   // ============================================================
   // 排盘：公历 y/m/d + 时辰名 → 完整命盘对象
+  // 年柱按立春换、月柱按节气换（自算），日柱/时柱用 lunar（已验证准确）
   // ============================================================
   function parseBazi(y, m, d, shichen) {
     if (!Lunar) throw new Error('lunar 库未加载');
     const hour = SHICHEN_HOUR[shichen] !== undefined ? SHICHEN_HOUR[shichen] : 0;
     const lunar = Lunar.fromYmdHms(y, m, d, hour, 0, 0);
+    const birthYmd = y * 10000 + m * 100 + d;
 
-    const pillars = ['年', '月', '日', '时'].map((label, i) => {
-      const gz = [lunar.getYearInGanZhi(), lunar.getMonthInGanZhi(), lunar.getDayInGanZhi(), lunar.getTimeInGanZhi()][i];
-      const nays = [lunar.getYearNaYin(), lunar.getMonthNaYin(), lunar.getDayNaYin(), lunar.getTimeNaYin()][i];
-      const gan = gz.charAt(0);
-      const zhi = gz.charAt(1);
-      return {
-        label, gan, zhi,
-        ganWX: GAN_WUXING[gan],
-        zhiWX: ZHI_WUXING[zhi],
-        naYin: nays,
-        naYinWX: naYinElement(nays)
-      };
-    });
+    // 年柱（立春为界）
+    const yGZ = yearGanZhi(y, m, d);
+    // 月柱（节气为界 + 五虎遁）
+    const mZhi = monthZhi(birthYmd, y);
+    const baseGanIdx = WUHU_DUN[yGZ.gan];
+    const mIdx = ((ZHI.indexOf(mZhi) - ZHI.indexOf('寅')) + 12) % 12;
+    const mGan = GAN[(baseGanIdx + mIdx) % 10];
+    // 日柱、时柱用 lunar
+    const dayGZ = lunar.getDayInGanZhi();
+    const timeGZ = lunar.getTimeInGanZhi();
+
+    const gzArr = [
+      { label: '年', gan: yGZ.gan, zhi: yGZ.zhi },
+      { label: '月', gan: mGan, zhi: mZhi },
+      { label: '日', gan: dayGZ.charAt(0), zhi: dayGZ.charAt(1) },
+      { label: '时', gan: timeGZ.charAt(0), zhi: timeGZ.charAt(1) }
+    ];
+    const pillars = gzArr.map(p => ({
+      label: p.label, gan: p.gan, zhi: p.zhi,
+      ganWX: GAN_WUXING[p.gan],
+      zhiWX: ZHI_WUXING[p.zhi],
+      naYin: naYinOf(p.gan, p.zhi),
+      naYinWX: naYinElement(naYinOf(p.gan, p.zhi))
+    }));
 
     const yearZhi = pillars[0].zhi;
     const dayMaster = pillars[2].gan;
