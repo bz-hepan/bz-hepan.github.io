@@ -7,6 +7,18 @@
   const B = window.BaziEngine;
   const $ = (id) => document.getElementById(id);
 
+  // ===== 付费解锁配置（站长可自行修改） =====
+  const PAY = {
+    price: '9.9',
+    // 解锁码：站长收款后发给用户，任意一个匹配即解锁
+    codes: ['YUANFEN666', 'HEPAN888', 'BAZI520', 'LOVE2026'],
+    wechat: '（在 js/app.js 顶部 PAY.wechat 填写你的微信号）',
+    note: '把付款截图发我，我把解锁码发你～'
+  };
+  const UNLOCK_KEY = 'bazi_unlock';
+  function isUnlocked() { try { return localStorage.getItem(UNLOCK_KEY) === '1'; } catch (e) { return false; } }
+  function setUnlocked() { try { localStorage.setItem(UNLOCK_KEY, '1'); } catch (e) {} }
+
   const els = {
     nameA: $('nameA'), dateA: $('dateA'), timeA: $('timeA'), relA: $('relA'),
     nameB: $('nameB'), dateB: $('dateB'), timeB: $('timeB'), relB: $('relB'),
@@ -16,7 +28,11 @@
     ratingLevel: $('ratingLevel'), ratingStars: $('ratingStars'), summaryText: $('summaryText'),
     pillarA: $('pillarA'), pillarB: $('pillarB'),
     dimensions: $('dimensions'), adviceList: $('adviceList'),
-    shareBtn: $('shareBtn'), shareHint: $('shareHint')
+    shareBtn: $('shareBtn'), shareHint: $('shareHint'),
+    deepZone: $('deepZone'),
+    unlockModal: $('unlockModal'), modalClose: $('modalClose'),
+    unlockCode: $('unlockCode'), unlockConfirm: $('unlockConfirm'), unlockMsg: $('unlockMsg'),
+    payPrice: $('payPrice'), payPrice2: $('payPrice2'), payWechat: $('payWechat'), payNote: $('payNote')
   };
 
   function showError(msg) {
@@ -122,12 +138,105 @@
     els.adviceList.innerHTML = uniq.map(t => `<li>${t}</li>`).join('');
   }
 
+  // ===== 深度缘分解锁区 =====
+  function renderDeepZone(a, b, res) {
+    if (isUnlocked()) {
+      const d = B.deepReport(a, b, res);
+      const nameA = els.nameA.value.trim() || '命主 A';
+      const nameB = els.nameB.value.trim() || '命主 B';
+      els.deepZone.innerHTML = `
+        <div class="deep-unlocked">
+          <div class="du-head">🌟 深度缘分报告（已解锁）</div>
+          <div class="du-persona-grid">
+            <div class="du-persona">
+              <h4>${nameA}</h4>
+              <div class="du-strength">日主 ${a.dayMaster}（${a.dayMasterWX}）· ${d.personA.strength}</div>
+              <div class="du-tone">${d.personA.tone}</div>
+              <div class="du-xi">${d.personA.xiDesc}</div>
+            </div>
+            <div class="du-persona">
+              <h4>${nameB}</h4>
+              <div class="du-strength">日主 ${b.dayMaster}（${b.dayMasterWX}）· ${d.personB.strength}</div>
+              <div class="du-tone">${d.personB.tone}</div>
+              <div class="du-xi">${d.personB.xiDesc}</div>
+            </div>
+          </div>
+          <div class="du-block">
+            <h4>📜 缘分深度长文</h4>
+            <p>${d.deep}</p>
+          </div>
+          <div class="du-specials">
+            <div class="du-special"><h4>💞 桃花缘</h4><p>${d.taohua}</p></div>
+            <div class="du-special"><h4>💰 财运合盘</h4><p>${d.wealth}</p></div>
+            <div class="du-special"><h4>🚀 事业合盘</h4><p>${d.career}</p></div>
+          </div>
+          <div class="du-block" style="margin-top:14px;">
+            <h4>🗓️ 关系发展时间线</h4>
+            <div class="du-timeline">
+              ${d.timeline.map(t => `<div class="du-tl-item"><div class="stage">${t.stage}</div><div class="tip">${t.tip}</div></div>`).join('')}
+            </div>
+          </div>
+        </div>`;
+    } else {
+      els.deepZone.innerHTML = `
+        <div class="deep-locked">
+          <span class="deep-badge">付费专享 · 解锁更多</span>
+          <h3>想知道你们更深的缘分吗？</h3>
+          <ul class="deep-feature-list">
+            <li>双人命格详批：日主强弱、喜用神、性格深度</li>
+            <li>缘分深度长文：从命理看你们的相处底色</li>
+            <li>专项合盘：桃花缘 / 财运 / 事业 三维度</li>
+            <li>关系发展时间线：初识 → 磨合 → 长久建议</li>
+            <li>解锁后分享图去水印，高清无遮挡</li>
+          </ul>
+          <button id="unlockBtn" class="unlock-btn" type="button">🔓 解锁全部 · ¥${PAY.price}</button>
+        </div>`;
+      const ub = $('unlockBtn');
+      if (ub) ub.addEventListener('click', openModal);
+    }
+  }
+
+  function openModal() {
+    els.payPrice.textContent = PAY.price;
+    els.payPrice2.textContent = PAY.price;
+    els.payWechat.textContent = PAY.wechat;
+    els.payNote.textContent = PAY.note;
+    els.unlockMsg.hidden = true;
+    els.unlockCode.value = '';
+    els.unlockModal.hidden = false;
+  }
+  function closeModal() { els.unlockModal.hidden = true; }
+  function showUnlockMsg(msg, ok) {
+    els.unlockMsg.hidden = false;
+    els.unlockMsg.textContent = msg;
+    els.unlockMsg.className = 'unlock-msg ' + (ok ? 'ok' : 'err');
+  }
+  function confirmUnlock() {
+    const code = (els.unlockCode.value || '').trim().toUpperCase();
+    if (!code) { showUnlockMsg('请输入解锁码', false); return; }
+    if (PAY.codes.includes(code)) {
+      setUnlocked();
+      closeModal();
+      showUnlockMsg('解锁成功，正在刷新…', true);
+      doCalc(); // 用最新输入重渲染，显示解锁内容
+    } else {
+      showUnlockMsg('解锁码不正确，请核对或联系站长', false);
+    }
+  }
+
   async function saveShare() {
     if (typeof html2canvas !== 'function') { alert('分享组件未加载，请刷新页面重试'); return; }
     els.shareHint.hidden = false;
     els.shareHint.textContent = '生成中…';
     els.shareBtn.disabled = true;
     const node = els.result;
+    let wm = null;
+    if (!isUnlocked()) {
+      wm = document.createElement('div');
+      wm.className = 'share-watermark';
+      wm.textContent = '体验版 · 双女八字合盘';
+      node.appendChild(wm);
+    }
     const prevBg = node.style.background;
     const prevBtn = els.shareBtn.style.display;
     els.shareBtn.style.display = 'none';
@@ -144,6 +253,7 @@
       alert('生成图片失败：' + (e.message || e));
       els.shareHint.textContent = '';
     } finally {
+      if (wm && wm.parentNode) wm.parentNode.removeChild(wm);
       node.style.background = prevBg;
       els.shareBtn.style.display = prevBtn;
       els.shareBtn.disabled = false;
@@ -183,6 +293,8 @@
       els.pillarB.innerHTML = buildPillarCard(pb, els.nameB.value.trim());
       renderDimensions(res.details);
       buildAdvice(pa, pb, res.dimensions, res.total, els.relA.value);
+      renderDeepZone(pa, pb, res);
+      els.shareBtn.textContent = isUnlocked() ? '📸 保存无水印高清图' : '📸 保存分享图（体验版带水印）';
       els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {
       showError(e.message || '合盘出错，请检查输入。');
@@ -219,4 +331,8 @@
   els.calcBtn.addEventListener('click', doCalc);
   els.demoBtn.addEventListener('click', fillDemo);
   els.shareBtn.addEventListener('click', saveShare);
+  els.unlockConfirm.addEventListener('click', confirmUnlock);
+  els.modalClose.addEventListener('click', closeModal);
+  els.unlockModal.addEventListener('click', (e) => { if (e.target === els.unlockModal) closeModal(); });
+  els.unlockCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmUnlock(); });
 })();

@@ -132,11 +132,43 @@
         <ul id="adviceList" class="advice-list"></ul>
       </div>
 
+      <!-- 深度缘分解锁区（付费） -->
+      <section id="deepZone" class="deep-zone"></section>
+
       <p class="disclaimer-bottom">本结果由八字排盘与合盘规则自动生成，属于传统文化娱乐范畴，请勿用于人生重大决策。🌷</p>
     </section>
   </main>
 
   <footer class="site-footer">双女八字合盘 · 用温柔的方式，看看你们的缘分</footer>
+
+  <!-- 解锁弹窗 -->
+  <div id="unlockModal" class="modal-mask" hidden>
+    <div class="modal-card">
+      <button id="modalClose" class="modal-close" type="button" aria-label="关闭">×</button>
+      <h3 class="modal-title">✨ 深度缘分解锁</h3>
+      <p class="modal-price">¥<span id="payPrice">9.9</span> <span class="modal-price-sub">解锁全部深度内容</span></p>
+
+      <div class="pay-box">
+        <div class="pay-qr">
+          <!-- 把这里换成你自己的微信/支付宝收款码图片，例如：<img src="images/pay.png" alt="收款码"> -->
+          <div class="pay-qr-placeholder">收款码<br>位置</div>
+        </div>
+        <div class="pay-info">
+          <p class="pay-tip">① 微信 / 支付宝扫码付款 <b id="payPrice2">9.9</b> 元</p>
+          <p class="pay-tip">② 付款后加站长微信领取解锁码：</p>
+          <p class="pay-wechat">微信号：<b id="payWechat">（在 js/app.js 顶部 PAY.wechat 填写）</b></p>
+          <p class="pay-note" id="payNote">把付款截图发我，我把解锁码发你～</p>
+        </div>
+      </div>
+
+      <div class="unlock-input-row">
+        <input type="text" id="unlockCode" placeholder="输入解锁码（如 YUANFEN666）" autocomplete="off" />
+        <button id="unlockConfirm" class="calc-btn small" type="button">解锁</button>
+      </div>
+      <p id="unlockMsg" class="unlock-msg" hidden></p>
+      <p class="modal-fineprint">解锁码由站长提供，仅用于解锁本页深度解读，不作为任何承诺。</p>
+    </div>
+  </div>
 
   <script src="lib/lunar.js"></script>
   <script src="lib/html2canvas.min.js"></script>

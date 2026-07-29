@@ -321,9 +321,102 @@
     ];
   }
 
+  // ============================================================
+  // 深度报告（付费解锁内容）— 纯娱乐文案扩展
+  // ============================================================
+  function personDeep(p) {
+    const wx = p.dayMasterWX;
+    const cnt = p.elementCounts[wx];
+    const shengWX = WUXING.find(w => SHENG[w] === wx); // 生我者（印）
+    let strength;
+    if (cnt >= 3) strength = '偏旺';
+    else if (cnt === 2) strength = '中和';
+    else strength = '偏弱';
+    let xi;
+    if (cnt >= 3) {
+      xi = [WUXING.find(w => KE[wx] === w), SHENG[wx], WUXING.find(w => KE[w] === wx)]; // 克、泄、耗
+    } else {
+      xi = [wx, shengWX]; // 同、生
+    }
+    const xiDesc = '喜' + xi.join('、') + '为用';
+    // 性格深度：结合强弱给一句
+    let tone;
+    if (strength === '偏旺') tone = '更有主见、能扛事，但偶尔要学着示弱与倾听';
+    else if (strength === '偏弱') tone = '更需被托住、被理解，温柔里有韧性';
+    else tone = '状态平稳、好相处，情绪相对稳定';
+    return { strength, xi, xiDesc, tone };
+  }
+
+  function timelineOf(total) {
+    if (total >= 70) return [
+      { stage: '初识', tip: '一拍即合，趁热打铁多制造共同回忆。' },
+      { stage: '磨合', tip: '少争对错、多问感受，关系会越养越厚。' },
+      { stage: '长久', tip: '适合一起规划未来（同居 / 旅行 / 事业），把缘分落进生活。' }
+    ];
+    if (total >= 55) return [
+      { stage: '初识', tip: '慢热但稳，给彼此多一点靠近的时间。' },
+      { stage: '磨合', tip: '把小情绪说出口，别攒成心结。' },
+      { stage: '长久', tip: '固定一些只属于两人的小仪式，感情有锚点。' }
+    ];
+    if (total >= 40) return [
+      { stage: '初识', tip: '火花足但也易擦枪走火，先当朋友摸清脾气。' },
+      { stage: '磨合', tip: '争执时各退十分钟，把"讲赢"换成"懂你"。' },
+      { stage: '长久', tip: '找共同爱好当缓冲带，摩擦也能变成情趣。' }
+    ];
+    return [
+      { stage: '初识', tip: '缘分浅，不强求，当段舒服的相遇就好。' },
+      { stage: '磨合', tip: '差异大时少评判、多好奇，反而能互相学到东西。' },
+      { stage: '长久', tip: '顺其自然，经营得好也能日久生情。' }
+    ];
+  }
+
+  function deepReport(a, b, res) {
+    const pa = personDeep(a), pb = personDeep(b);
+
+    // 桃花专项
+    const peach = (p) => p.pillars.some(pl => ['子', '午', '卯', '酉'].includes(pl.zhi));
+    const taohua = (peach(a) && peach(b))
+      ? '双方命带桃花，这组关系里吸引力与心动感都很足，记得把这份火花用在彼此身上。'
+      : (peach(a) || peach(b))
+        ? '你们之中有一方桃花较旺，会把更多浪漫与关注带进关系，另一方安心接住就好。'
+        : '桃花平稳，你们的感情更偏向日久生情、细水长流，越了解越上头。';
+
+    // 财运专项（我克者为财）
+    const caiWXa = KE[a.dayMasterWX], caiWXb = KE[b.dayMasterWX];
+    const caiSum = a.elementCounts[caiWXa] + b.elementCounts[caiWXb];
+    const wealth = caiSum >= 3
+      ? '财星两旺，一起规划小事业或共同储蓄会很合拍，钱的事聊开了反而更亲密。'
+      : caiSum === 2
+        ? '财星各一位，求财风格互补——一个敢想、一个稳健，搭伙正好。'
+        : '财星偏弱，对钱都偏随性，建议在关系里设一两个共同小目标，感情有锚点。';
+
+    // 事业专项
+    const zhiLabel = res.dimensions.zhi.label;
+    const career = (zhiLabel.includes('合') || zhiLabel.includes('三合'))
+      ? '事业上你们能互相搭台，一个出主意、一个落地，组合战斗力很强。'
+      : zhiLabel.includes('冲')
+        ? '事业上观点易碰撞，但正因为互补，定好分工反而能把事做成。'
+        : '事业上节奏接近，一起做点什么会很合拍，关键是把角色分清楚。';
+
+    // 深度长文
+    const deep = `${a.zodiac}与${b.zodiac}的组合，${res.summary} `
+      + `从命格看，A 方日主${a.dayMaster}（${pa.strength}，${pa.xiDesc}），B 方日主${b.dayMaster}（${pb.strength}，${pb.xiDesc}）——`
+      + `一个${pa.tone}，一个${pb.tone}。`
+      + `你们的相处底色由生肖「${res.dimensions.zodiac.label}」、五行「${res.dimensions.wuxing.label}」、天干「${res.dimensions.gan.label}」共同织成；`
+      + `年柱「${res.dimensions.fate.label}」则决定了这份缘分的深浅与经营方式。`;
+
+    return {
+      personA: { ...pa },
+      personB: { ...pb },
+      taohua, wealth, career,
+      deep,
+      timeline: timelineOf(res.total)
+    };
+  }
+
   // ---- 暴露接口 ----
   const API = {
-    parseBazi, analyzeCompat,
+    parseBazi, analyzeCompat, deepReport,
     GAN, ZHI, WUXING, GAN_WUXING, ZHI_WUXING, WX_COLOR, ZHI_ANIMAL, SHICHEN_HOUR,
     isLiuHe, isLiuChong, isGanHe, inSameSanHe, relWX
   };
