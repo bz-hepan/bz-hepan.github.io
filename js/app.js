@@ -28,7 +28,7 @@
     ratingLevel: $('ratingLevel'), ratingStars: $('ratingStars'), summaryText: $('summaryText'),
     pillarA: $('pillarA'), pillarB: $('pillarB'),
     dimensions: $('dimensions'), adviceList: $('adviceList'),
-    shareBtn: $('shareBtn'), shareHint: $('shareHint'),
+    shareBtn: $('shareBtn'), shareHint: $('shareHint'), resetBtn: $('resetBtn'),
     deepZone: $('deepZone'),
     unlockModal: $('unlockModal'), modalClose: $('modalClose'),
     unlockCode: $('unlockCode'), unlockConfirm: $('unlockConfirm'), unlockMsg: $('unlockMsg'),
@@ -284,6 +284,7 @@
 
       els.result.hidden = false;
       els.shareBtn.hidden = false;
+      els.resetBtn.hidden = false;
       animateScore(res.total);
       els.ratingLevel.textContent = res.rating.level;
       els.ratingLevel.style.color = res.rating.color;
@@ -331,6 +332,10 @@
   els.calcBtn.addEventListener('click', doCalc);
   els.demoBtn.addEventListener('click', fillDemo);
   els.shareBtn.addEventListener('click', saveShare);
+  els.resetBtn.addEventListener('click', () => {
+    els.result.hidden = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
   els.unlockConfirm.addEventListener('click', confirmUnlock);
   els.modalClose.addEventListener('click', closeModal);
   els.unlockModal.addEventListener('click', (e) => { if (e.target === els.unlockModal) closeModal(); });

@@ -19,6 +19,8 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+/* 兜底：任何带 hidden 属性的元素都强制隐藏，避免 class 的 display 覆盖 [hidden] */
+[hidden] { display: none !important; }
 
 body {
   font-family: var(--font-ui);
