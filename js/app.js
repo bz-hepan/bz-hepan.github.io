@@ -152,6 +152,8 @@
     if (zh.includes('多合')) tips.push('地支多合、相处顺滑，很适合一起培养一个共同爱好。');
     if (f.includes('相生')) tips.push('年柱纳音相生，家庭与过往背景容易互相接纳，见家长阻力较小。');
     if (f.includes('相成')) tips.push('年柱纳音相制，谈长远或见家长前多做铺垫，节奏放慢更稳。');
+    if (dims.yongshen.label.includes('相济')) tips.push('你们喜用神互补得恰到好处，多给彼此空间发挥长处，关系会越养越厚。');
+    if (dims.yongshen.label.includes('相背')) tips.push('用神互补偏弱，少些“为你好”的改造，多些“我懂你”的接纳，差异反成滋养。');
 
     // 五行偏缺调和
     const union = new Set([...a.distinctElements, ...b.distinctElements]);
