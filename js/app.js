@@ -7,17 +7,62 @@
   const B = window.BaziEngine;
   const $ = (id) => document.getElementById(id);
 
-  // ===== 付费解锁配置（站长可自行修改） =====
+  // ===== 解锁配置（站长可自行修改） =====
+  // 解锁码规则：每「配对」专属 + 按月流动（滚动）
+  //  - 不同配对 → 不同解锁码（由双方八字四柱生成）
+  //  - 每月更新一次，上个月码有 1 个月宽限期
+  //  - 用户加站长微信，发送出生信息即可领取专属码
   const PAY = {
-    price: '9.9',
-    // 解锁码：站长收款后发给用户，任意一个匹配即解锁
-    codes: ['YUANFEN666', 'HEPAN888', 'BAZI520', 'LOVE2026'],
-    wechat: '（在 js/app.js 顶部 PAY.wechat 填写你的微信号）',
-    note: '把付款截图发我，我把解锁码发你～'
+    wechat: 'aichishutiaodewo',
+    // 站长备用总码（仅自己测试用，不参与"每对不同"规则）
+    codes: ['YUAN2026'],
+    // 站长控制台入口：在网址后加 ?op=下方密钥 打开（如 .../?op=yuan-admin-2026）
+    ownerOp: 'yuan-admin-2026'
   };
-  const UNLOCK_KEY = 'bazi_unlock';
-  function isUnlocked() { try { return localStorage.getItem(UNLOCK_KEY) === '1'; } catch (e) { return false; } }
-  function setUnlocked() { try { localStorage.setItem(UNLOCK_KEY, '1'); } catch (e) {} }
+  const CODE_SALT = 'bazi-hepan-yuan-2026';
+
+  // —— 配对签名：由双方八字四柱生成，顺序无关 ——
+  function pairSig(a, b) {
+    const s = p => p.pillars.map(x => x.gan + x.zhi).join('');
+    return [s(a), s(b)].sort().join('|');
+  }
+  // 短暗号（用户发给站长做指代用，不可逆）
+  function shortToken(sig) {
+    return hashStr(sig).toString(36).toUpperCase().slice(0, 6).padStart(6, '0');
+  }
+  // —— 时间窗口：按月滚动，返回 [当月, 上月] ——
+  function monthWindows() {
+    const d = new Date();
+    let y = d.getFullYear(), m = d.getMonth();
+    const cur = y * 100 + (m + 1);
+    let py = y, pm = m - 1;
+    if (pm < 0) { pm = 11; py = y - 1; }
+    return [cur, py * 100 + (pm + 1)];
+  }
+  // —— 哈希 & 解锁码生成 ——
+  function hashStr(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function makeCode(sig, win) {
+    const h = hashStr(sig + '|' + win + '|' + CODE_SALT);
+    const body = h.toString(36).toUpperCase().padStart(7, '0').slice(-7);
+    return 'Y' + body; // 形如 YK3F9ZQ2
+  }
+
+  // —— 解锁状态：按「配对」记录，每对独立 ——
+  const UNLOCK_KEY = 'bazi_unlocked_pairs';
+  function getUnlocked() { try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]'); } catch (e) { return []; } }
+  function isPairUnlocked(sig) { return sig ? getUnlocked().includes(sig) : false; }
+  function unlockPair(sig) {
+    if (!sig) return;
+    const arr = getUnlocked();
+    if (!arr.includes(sig)) { arr.push(sig); try { localStorage.setItem(UNLOCK_KEY, JSON.stringify(arr)); } catch (e) {} }
+  }
+
+  let currentSig = null;   // 当前合盘配对的签名
+  let lastCalc = null;     // 最近一次合盘结果（用于解锁后局部刷新）
 
   const els = {
     nameA: $('nameA'), dateA: $('dateA'), timeA: $('timeA'), relA: $('relA'),
@@ -32,7 +77,7 @@
     deepZone: $('deepZone'),
     unlockModal: $('unlockModal'), modalClose: $('modalClose'),
     unlockCode: $('unlockCode'), unlockConfirm: $('unlockConfirm'), unlockMsg: $('unlockMsg'),
-    payPrice: $('payPrice'), payPrice2: $('payPrice2'), payWechat: $('payWechat'), payNote: $('payNote')
+    payWechat: $('payWechat')
   };
 
   function showError(msg) {
@@ -140,7 +185,7 @@
 
   // ===== 深度缘分解锁区 =====
   function renderDeepZone(a, b, res) {
-    if (isUnlocked()) {
+    if (isPairUnlocked(currentSig)) {
       const d = B.deepReport(a, b, res);
       const nameA = els.nameA.value.trim() || '命主 A';
       const nameB = els.nameB.value.trim() || '命主 B';
@@ -165,10 +210,18 @@
             <h4>📜 缘分深度长文</h4>
             <p>${d.deep}</p>
           </div>
+          <div class="du-block">
+            <h4>🌿 五行调和指南</h4>
+            <p>${d.tune}</p>
+          </div>
           <div class="du-specials">
             <div class="du-special"><h4>💞 桃花缘</h4><p>${d.taohua}</p></div>
             <div class="du-special"><h4>💰 财运合盘</h4><p>${d.wealth}</p></div>
             <div class="du-special"><h4>🚀 事业合盘</h4><p>${d.career}</p></div>
+          </div>
+          <div class="du-block">
+            <h4>⚠️ 相处禁忌</h4>
+            <ul class="du-taboo-list">${d.taboo.map(t => `<li>${t}</li>`).join('')}</ul>
           </div>
           <div class="du-block" style="margin-top:14px;">
             <h4>🗓️ 关系发展时间线</h4>
@@ -178,10 +231,13 @@
           </div>
         </div>`;
     } else {
+      const token = shortToken(currentSig);
       els.deepZone.innerHTML = `
         <div class="deep-locked">
-          <span class="deep-badge">付费专享 · 解锁更多</span>
+          <span class="deep-badge">专属解锁 · 每对不同</span>
           <h3>想知道你们更深的缘分吗？</h3>
+          <p class="deep-free-line">${res.summary} 解锁后还能看到关系时间线、桃花 / 财运 / 事业专项解读，以及无水印高清分享图。</p>
+          <div class="deep-pair-token">本配对暗号：<b>${token}</b><span class="deep-pair-note">把暗号 + 你们俩的出生年月日与时辰发给站长微信，领取本配对专属解锁码</span></div>
           <ul class="deep-feature-list">
             <li>双人命格详批：日主强弱、喜用神、性格深度</li>
             <li>缘分深度长文：从命理看你们的相处底色</li>
@@ -189,7 +245,7 @@
             <li>关系发展时间线：初识 → 磨合 → 长久建议</li>
             <li>解锁后分享图去水印，高清无遮挡</li>
           </ul>
-          <button id="unlockBtn" class="unlock-btn" type="button">🔓 解锁全部 · ¥${PAY.price}</button>
+          <button id="unlockBtn" class="unlock-btn" type="button">🔓 获取专属解锁码</button>
         </div>`;
       const ub = $('unlockBtn');
       if (ub) ub.addEventListener('click', openModal);
@@ -197,10 +253,7 @@
   }
 
   function openModal() {
-    els.payPrice.textContent = PAY.price;
-    els.payPrice2.textContent = PAY.price;
     els.payWechat.textContent = PAY.wechat;
-    els.payNote.textContent = PAY.note;
     els.unlockMsg.hidden = true;
     els.unlockCode.value = '';
     els.unlockModal.hidden = false;
@@ -214,13 +267,17 @@
   function confirmUnlock() {
     const code = (els.unlockCode.value || '').trim().toUpperCase();
     if (!code) { showUnlockMsg('请输入解锁码', false); return; }
-    if (PAY.codes.includes(code)) {
-      setUnlocked();
+    if (!currentSig) { showUnlockMsg('请先完成一次合盘', false); return; }
+    const [cur, prev] = monthWindows();
+    const ok = code === makeCode(currentSig, cur) || code === makeCode(currentSig, prev) || PAY.codes.includes(code);
+    if (ok) {
+      unlockPair(currentSig);
       closeModal();
       showUnlockMsg('解锁成功，正在刷新…', true);
-      doCalc(); // 用最新输入重渲染，显示解锁内容
+      if (lastCalc) renderDeepZone(lastCalc.pa, lastCalc.pb, lastCalc.res);
+      els.shareBtn.textContent = '📸 保存无水印高清图';
     } else {
-      showUnlockMsg('解锁码不正确，请核对或联系站长', false);
+      showUnlockMsg('解锁码不正确，请核对或联系站长微信 ' + PAY.wechat, false);
     }
   }
 
@@ -231,7 +288,7 @@
     els.shareBtn.disabled = true;
     const node = els.result;
     let wm = null;
-    if (!isUnlocked()) {
+    if (!isPairUnlocked(currentSig)) {
       wm = document.createElement('div');
       wm.className = 'share-watermark';
       wm.textContent = '体验版 · 双女八字合盘';
@@ -282,6 +339,9 @@
       const pb = B.parseBazi(ib.y, ib.m, ib.d, ib.shichen);
       const res = B.analyzeCompat(pa, pb);
 
+      currentSig = pairSig(pa, pb);
+      lastCalc = { pa, pb, res };
+
       els.result.hidden = false;
       els.shareBtn.hidden = false;
       els.resetBtn.hidden = false;
@@ -295,7 +355,7 @@
       renderDimensions(res.details);
       buildAdvice(pa, pb, res.dimensions, res.total, els.relA.value);
       renderDeepZone(pa, pb, res);
-      els.shareBtn.textContent = isUnlocked() ? '📸 保存无水印高清图' : '📸 保存分享图（体验版带水印）';
+      els.shareBtn.textContent = isPairUnlocked(currentSig) ? '📸 保存无水印高清图' : '📸 保存分享图（体验版带水印）';
       els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {
       showError(e.message || '合盘出错，请检查输入。');
@@ -329,6 +389,61 @@
     doCalc();
   }
 
+  // ===== 诗词共赏（免费专区） =====
+  const POEMS = [
+    { tag: '唐诗 · 女诗人', author: '李冶《八至》', lines: ['至近至远东西，', '至深至浅清溪。', '至高至明日月，', '至亲至疏夫妻。'], note: '唐代女诗人李冶的名句——最亲最疏，原是身边人。' },
+    { tag: '唐诗 · 女诗人', author: '鱼玄机《赠邻女》', lines: ['羞日遮罗袖，', '愁春懒起妆。', '易求无价宝，', '难得有情郎。'], note: '鱼玄机写给邻家女子的诗，道尽女儿家心事。' },
+    { tag: '唐诗 · 女诗人', author: '薛涛《春望词》', lines: ['花开不同赏，', '花落不同悲。', '欲问相思处，', '花开花落时。'], note: '薛涛以花喻相思，写尽双女相隔的柔情。' },
+    { tag: '唐诗 · 女诗人', author: '薛涛《送友人》', lines: ['水国蒹葭夜有霜，', '月寒山色共苍苍。', '谁言千里自今夕，', '离梦杳如关塞长。'], note: '薛涛送别之作，千里亦如比邻。' },
+    { tag: '宋词 · 女词人', author: '李清照《如梦令》', lines: ['常记溪亭日暮，', '沉醉不知归路。', '兴尽晚回舟，', '误入藕花深处。'], note: '李清照少女时代的明快，像极了和喜欢的人一起浪费时光。' },
+    { tag: '宋词 · 女词人', author: '朱淑真《谒金门》', lines: ['满院落花帘不卷，', '断肠芳草远。'], note: '朱淑真笔下的思念，写尽女儿家细腻幽微的心事。' },
+    { tag: '现代诗 · 原创', author: '今人 · 双女小诗', lines: ['她不是风景，是归途；', '我走遍千山，只在她眼里落脚。'], note: '现代随手写的短句，给两个女孩。' },
+    { tag: '现代诗 · 原创', author: '今人 · 双女小诗', lines: ['我们把名字写在同一行，', '风一读，就甜了。'], note: '同名同框，是双女最寻常的浪漫。' },
+    { tag: '现代诗 · 原创', author: '今人 · 双女小诗', lines: ['她懂我所有的沉默，', '就像月亮懂潮汐。'], note: '不必说出口的懂得，是最深的默契。' },
+    { tag: '现代诗 · 原创', author: '今人 · 双女小诗', lines: ['我们是两朵并肩生长的花，', '根在地下悄悄牵着手。'], note: '写给那些细水长流、彼此支撑的关系。' },
+    { tag: '古风短句', author: '并蒂 · 双栖', lines: ['并蒂莲开，双栖枝上。', '她携春风来，落我眉间雪。'], note: '古风里写双女，最宜合盘。' },
+    { tag: '古风短句', author: '同看 · 共话', lines: ['同看一窗月，', '共话两心知。'], note: '月下并肩，是两朵花最好的归宿。' },
+    { tag: '古风短句', author: '红袖 · 添香', lines: ['红袖添香夜读书，', '灯下眉弯两相顾。'], note: '最浪漫的事，不过一屋两人，三餐四季。' },
+    { tag: '古风短句', author: '相思 · 不负', lines: ['愿我如星君如月，', '夜夜流光相皎洁。'], note: '虽是旧句，写给双女亦是再合适不过。' },
+    { tag: '现代诗 · 原创', author: '今人 · 双女小诗', lines: ['别人问我们是什么关系，', '我们相视一笑——是命运。'], note: '有些缘分，八字知道，心也知道。' },
+    { tag: '现代诗 · 原创', author: '今人 · 双女小诗', lines: ['她是我平平无奇的日子里，', '忽然亮起的一盏灯。'], note: '写给那个让你生活发光的人。' }
+  ];
+  function renderPoems() {
+    const grid = document.getElementById('poemGrid');
+    if (!grid) return;
+    grid.innerHTML = POEMS.map((p, i) => `
+      <article class="poem-card${i % 3 === 0 ? ' poem-featured' : ''}">
+        <div class="poem-tag">${p.tag}</div>
+        <h4 class="poem-author">${p.author}</h4>
+        <div class="poem-body">${p.lines.map(l => `<p>${l}</p>`).join('')}</div>
+        <div class="poem-note">${p.note}</div>
+      </article>`).join('');
+  }
+  renderPoems();
+
+  // 复制微信号
+  const copyWxBtn = $('copyWxBtn');
+  if (copyWxBtn) {
+    copyWxBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(PAY.wechat).then(() => {
+        const old = copyWxBtn.textContent;
+        copyWxBtn.textContent = '已复制 ✓';
+        setTimeout(() => copyWxBtn.textContent = old, 1500);
+      }).catch(() => {
+        alert('微信号：' + PAY.wechat);
+      });
+    });
+  }
+
+  // 回到顶部
+  const backToTop = $('backToTop');
+  if (backToTop) {
+    window.addEventListener('scroll', () => {
+      backToTop.classList.toggle('show', window.scrollY > 400);
+    }, { passive: true });
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
   els.calcBtn.addEventListener('click', doCalc);
   els.demoBtn.addEventListener('click', fillDemo);
   els.shareBtn.addEventListener('click', saveShare);
@@ -340,4 +455,41 @@
   els.modalClose.addEventListener('click', closeModal);
   els.unlockModal.addEventListener('click', (e) => { if (e.target === els.unlockModal) closeModal(); });
   els.unlockCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmUnlock(); });
+
+  // ===== 站长控制台：输入用户出生信息 → 生成该配对当月专属解锁码 =====
+  function initOwnerConsole() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('op') !== PAY.ownerOp) return;
+    const oc = document.getElementById('ownerConsole');
+    if (!oc) return;
+    const fill = (id, src) => {
+      const el = document.getElementById(id), s = document.getElementById(src);
+      if (el && s) el.innerHTML = s.innerHTML;
+    };
+    fill('ocTimeA', 'timeA');
+    fill('ocTimeB', 'timeB');
+    oc.hidden = false;
+    const closeOc = () => { oc.hidden = true; };
+    document.getElementById('ocClose').addEventListener('click', closeOc);
+    oc.addEventListener('click', (e) => { if (e.target === oc) closeOc(); });
+    document.getElementById('ocGen').addEventListener('click', () => {
+      const da = document.getElementById('ocDateA').value;
+      const db = document.getElementById('ocDateB').value;
+      if (!da || !db) { alert('请填写两位命主的出生日期'); return; }
+      const [ay, am, ad] = da.split('-').map(Number);
+      const [by, bm, bd] = db.split('-').map(Number);
+      const sa = document.getElementById('ocTimeA').value || '子';
+      const sb = document.getElementById('ocTimeB').value || '子';
+      const pa = B.parseBazi(ay, am, ad, sa);
+      const pb = B.parseBazi(by, bm, bd, sb);
+      const sig = pairSig(pa, pb);
+      const [cur, prev] = monthWindows();
+      const out = document.getElementById('ocOut');
+      out.hidden = false;
+      out.innerHTML = '当前解锁码：<b class="oc-code">' + makeCode(sig, cur) + '</b>' +
+        '<span class="oc-win">有效期：' + cur + '（上个月 ' + prev + ' 也有效）</span>' +
+        '<span class="oc-win">配对暗号：' + shortToken(sig) + '</span>';
+    });
+  }
+  initOwnerConsole();
 })();
