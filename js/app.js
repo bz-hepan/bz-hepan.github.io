@@ -16,8 +16,10 @@
     wechat: 'aichishutiaodewo',
     // 站长备用总码（仅自己测试用，不参与"每对不同"规则）
     codes: ['YUAN2026'],
-    // 站长控制台入口：在网址后加 ?op=下方密钥 打开（如 .../?op=yuan-admin-2026）
-    ownerOp: 'yuan-admin-2026'
+    // 站长控制台入口：网址后加 ?op=ownerOp&key=ownerKey 才打开（如 .../?op=yuan-admin-2026&key=你的密令）
+    // ownerKey 仅作"防随手猜网址"的软门槛，写在网页里并非真加密；密令请设长一点并自行修改
+    ownerOp: 'yuan-admin-2026',
+    ownerKey: 'yzHP2026$xK7mPq2vN'
   };
   const CODE_SALT = 'bazi-hepan-yuan-2026';
 
@@ -460,6 +462,7 @@
   function initOwnerConsole() {
     const params = new URLSearchParams(location.search);
     if (params.get('op') !== PAY.ownerOp) return;
+    if (params.get('key') !== PAY.ownerKey) return; // 口令不对 → 不显示控制台（静默）
     const oc = document.getElementById('ownerConsole');
     if (!oc) return;
     const fill = (id, src) => {
