@@ -73,6 +73,7 @@
     error: $('errorMsg'), result: $('result'),
     scoreNum: $('scoreNum'), scoreRing: document.querySelector('.score-ring'),
     ratingLevel: $('ratingLevel'), ratingStars: $('ratingStars'), summaryText: $('summaryText'),
+    insightBox: $('insightBox'),
     pillarA: $('pillarA'), pillarB: $('pillarB'),
     dimensions: $('dimensions'), adviceList: $('adviceList'),
     shareBtn: $('shareBtn'), shareHint: $('shareHint'), resetBtn: $('resetBtn'),
@@ -185,6 +186,104 @@
     // 去重 + 取前 5 条
     const uniq = [...new Set(tips)].slice(0, 5);
     els.adviceList.innerHTML = uniq.map(t => `<li>${t}</li>`).join('');
+  }
+
+  // ===== 个性化解读区（结果卡内） =====
+  function buildPersonalInsight(a, b, res) {
+    const nameA = els.nameA.value.trim() || 'Ta';
+    const nameB = els.nameB.value.trim() || 'Ta';
+    const d = res.details;
+    const dims = [
+      { key: 'zodiac',  ...d[0] },
+      { key: 'wuxing',  ...d[1] },
+      { key: 'gan',     ...d[2] },
+      { key: 'zhi',     ...d[3] },
+      { key: 'fate',    ...d[4] },
+      { key: 'yongshen',...d[5] }
+    ];
+    // 按得分率排序
+    dims.sort((x, y) => (y.score / y.max) - (x.score / x.max));
+    const top = dims.slice(0, 2);     // 最强两项
+    const bot = dims.slice(-2).reverse(); // 最弱两项
+
+    // 日主性格画像
+    const dmA = a.dayMaster, dmB = b.dayMaster;
+    const dmMap = {
+      '甲': { trait: '如大树般稳重的存在，有担当、能扛事', role: '守护者' },
+      '乙': { trait: '柔韧如藤蔓，细腻敏感、善于感知情绪', role: '感知者' },
+      '丙': { trait: '像太阳一样热情直爽，照亮身边的人', role: '发光体' },
+      '丁': { trait: '烛光般的温柔，细腻贴心、默默付出', role: '温暖者' },
+      '戊': { trait: '像大地般厚实可靠，给人安全感', role: '定海针' },
+      '己': { trait: '如田园泥土般包容滋养，善解人意', role: '滋养者' },
+      '庚': { trait: '刚毅果决、讲原则，行动力强', role: '行动派' },
+      '辛': { trait: '精致讲究、审美在线，追求品质', role: '鉴赏家' },
+      '壬': { trait: '如江河般灵动聪慧、适应力极强', role: '智者' },
+      '癸': { trait: '如雨露般润物无声、内心丰富深邃', role: '治愈者' }
+    };
+    const pA = dmMap[dmA] || { trait: '个性独特', role: '神秘人' };
+    const pB = dmMap[dmB] || { trait: '个性独特', role: '神秘人' };
+
+    // 生肖互动小注
+    const zodiacNote = (() => {
+      const za = a.pillars[0].zhi, zb = b.pillars[0].zhi;
+      const liuhe = { '子丑':'鼠牛共耕','寅亥':'虎猪相抱','卯戌':'兔狗同巢','辰酉':'龙鸡共舞','巳申':'蛇猴连理','未羊':'马羊同行' };
+      const liuchong = { '子午':'水火不容','丑未':'土气相争','寅申':'金木相战','卯酉':'东西对冲','辰戌':'水库互冲','巳亥':'南北相冲' };
+      if (liuhe[za+zb]) return liuhe[za+zb];
+      if (liuhe[zb+za]) return liuhe[zb+za];
+      if (liuchong[za+zb]) return liuchong[za+zb];
+      if (liuchong[zb+za]) return liuchong[zb+za];
+      return null;
+    })();
+
+    // 相处模式
+    const modeText = (() => {
+      const ganLabel = dims.find(x => x.key === 'gan').label;
+      const zhiLabel = dims.find(x => x.key === 'zhi').label;
+      const ysLabel = dims.find(x => x.key === 'yongshen').label;
+      if (res.total >= 80) return `${nameA}和${nameB}在一起时，整个气场都会变亮——你们是那种"旁人看了都觉得配"的组合。`;
+      if (res.total >= 60) {
+        if (ganLabel.includes('五合') || ganLabel.includes('相生')) return `你们天然有一种默契的吸引，${nameA}说的话${nameB}常常秒懂。`;
+        if (zhiLabel.includes('多合')) return `相处起来意外地顺滑，很多事不用多说就能同频。`;
+        if (ysLabel.includes('相济')) return `从命理上看，你俩刚好能补上彼此最缺的那一块——这种互补很养关系。`;
+        return `整体来说是一段舒服的关系，有亮点也有需要磨合的地方，正常且真实。`;
+      }
+      if (ganLabel.includes('相制')) return `你们之间的张力其实是一种特别的化学反应——吵完反而更懂对方。`;
+      if (zhiLabel.includes('多冲') || zhiLabel.includes('刑')) return `你们像两块棱角分明的石头，磨着磨着反而更契合——关键是别放弃沟通。`;
+      return `缘分这事儿不只看分数。有时候恰恰是那些"不那么合"的地方，让彼此学会了成长。`;
+    })();
+
+    // 亮点标签
+    const highlightTags = [];
+    top.forEach(t => {
+      if (t.score / t.max >= 0.75) highlightTags.push(t.label);
+    });
+    if (dims.find(x => x.key === 'gan').label === '天干五合') highlightTags.push('天作羁绊');
+    if (zodiacNote && !zodiacNote.includes('冲')) highlightTags.push(zodiacNote);
+
+    // 注意标签
+    const cautionTags = [];
+    bot.forEach(t => {
+      if (t.score / t.max < 0.4) cautionTags.push(t.label);
+    });
+
+    els.insightBox.innerHTML = `
+      <div class="insight-personas">
+        <div class="insight-persona">
+          <span class="ip-name">${nameA}</span>
+          <span class="ip-role">${pA.role}</span>
+          <p class="ip-trait">${pA.trait}</p>
+        </div>
+        <div class="insight-arrow">💫</div>
+        <div class="insight-persona">
+          <span class="ip-name">${nameB}</span>
+          <span class="ip-role">${pB.role}</span>
+          <p class="ip-trait">${pB.trait}</p>
+        </div>
+      </div>
+      <p class="insight-mode">${modeText}</p>
+      ${highlightTags.length ? `<div class="insight-tags insight-highlights"><span class="it-label">✨ 亮点</span>${highlightTags.map(t => `<span class="it-tag it-good">${t}</span>`).join('')}</div>` : ''}
+      ${cautionTags.length ? `<div class="insight-tags insight-cautions"><span class="it-label">🌱 注意</span>${cautionTags.map(t => `<span class="it-tag it-warn">${t}</span>`).join('')}</div>` : ''}
+    `;
   }
 
   // ===== 深度缘分解锁区 =====
@@ -354,6 +453,7 @@
       els.ratingLevel.style.color = res.rating.color;
       els.ratingStars.textContent = '★'.repeat(res.rating.stars) + '☆'.repeat(5 - res.rating.stars);
       els.summaryText.textContent = res.summary;
+      buildPersonalInsight(pa, pb, res);
       els.pillarA.innerHTML = buildPillarCard(pa, els.nameA.value.trim());
       els.pillarB.innerHTML = buildPillarCard(pb, els.nameB.value.trim());
       renderDimensions(res.details);
@@ -415,13 +515,19 @@
   function renderPoems() {
     const grid = document.getElementById('poemGrid');
     if (!grid) return;
-    grid.innerHTML = POEMS.map((p, i) => `
+    const cardHTML = (p, i) => `
       <article class="poem-card${i % 3 === 0 ? ' poem-featured' : ''}">
         <div class="poem-tag">${p.tag}</div>
         <h4 class="poem-author">${p.author}</h4>
         <div class="poem-body">${p.lines.map(l => `<p>${l}</p>`).join('')}</div>
         <div class="poem-note">${p.note}</div>
-      </article>`).join('');
+      </article>`;
+    const SHOWN = 6;
+    const shown = POEMS.slice(0, SHOWN).map(cardHTML).join('');
+    const rest = POEMS.slice(SHOWN).map(cardHTML).join('');
+    grid.innerHTML = shown + (rest
+      ? `<details class="poem-more"><summary>展开更多 ${POEMS.length - SHOWN} 首 🌿</summary><div class="poem-more-grid">${rest}</div></details>`
+      : '');
   }
   renderPoems();
 
