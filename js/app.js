@@ -190,6 +190,7 @@
 
   // ===== 个性化解读区（结果卡内） =====
   function buildPersonalInsight(a, b, res) {
+    if (!els.insightBox) return; // 容错：元素不存在时跳过
     const nameA = els.nameA.value.trim() || 'Ta';
     const nameB = els.nameB.value.trim() || 'Ta';
     const d = res.details;
