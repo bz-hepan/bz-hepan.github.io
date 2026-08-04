@@ -355,6 +355,28 @@
               ${d.timeline.map(t => `<div class="du-tl-item"><div class="stage">${t.stage}</div><div class="tip">${t.tip}</div></div>`).join('')}
             </div>
           </div>
+          <div class="du-block">
+            <h4>🏷️ 你们的缘分关键词</h4>
+            <div class="du-keywords">${d.keywords.map(k => `<span class="du-kw">${k}</span>`).join('')}</div>
+          </div>
+          <div class="du-block">
+            <h4>🔮 专属开运守护</h4>
+            <div class="du-lucky">
+              <div class="du-lucky-item"><div class="du-lucky-k">幸运色</div><div class="du-lucky-v">${d.lucky.colors.join('、')}</div></div>
+              <div class="du-lucky-item"><div class="du-lucky-k">开运小物</div><div class="du-lucky-v">${d.lucky.items.join('、')}</div></div>
+              <div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">宜一起做</div><div class="du-lucky-v">${d.lucky.scenes}</div></div>
+            </div>
+          </div>
+          <div class="du-block">
+            <h4>💬 沟通风格 & 化解话术</h4>
+            <p class="du-talk">${d.talk.a}</p>
+            <p class="du-talk">${d.talk.b}</p>
+            <p class="du-talk-tip">💡 ${d.talk.tip}</p>
+          </div>
+          <div class="du-block du-signature">
+            <h4>✍️ 专属缘分词</h4>
+            <p class="du-sig-text">${d.signature}</p>
+          </div>
         </div>`;
     } else {
       const token = shortToken(currentSig);
@@ -362,12 +384,16 @@
         <div class="deep-locked">
           <span class="deep-badge">专属解锁 · 每对不同</span>
           <h3>想知道你们更深的缘分吗？</h3>
-          <p class="deep-free-line">${res.summary} 解锁后还能看到关系时间线、桃花 / 财运 / 事业专项解读，以及无水印高清分享图。</p>
+          <p class="deep-free-line">${res.summary} 解锁后还能看到缘分关键词、专属开运守护、沟通话术、关系时间线、桃花 / 财运 / 事业专项解读，以及无水印高清分享图。</p>
           <div class="deep-pair-token">本配对暗号：<b>${token}</b><span class="deep-pair-note">复制这个暗号 + 你们俩的出生年月日与时辰发给站长微信，即可领取本配对专属解锁码（填码时只需输入解锁码）</span></div>
           <ul class="deep-feature-list">
             <li>双人命格详批：日主强弱、喜用神、性格深度</li>
+            <li>缘分关键词标签云：一眼看懂你们的关系属性</li>
+            <li>专属开运守护：幸运色 / 开运小物 / 宜一起做</li>
             <li>缘分深度长文：从命理看你们的相处底色</li>
             <li>专项合盘：桃花缘 / 财运 / 事业 三维度</li>
+            <li>沟通化解话术：读懂彼此的沟通风格</li>
+            <li>专属古风云缘分词：可收藏分享的签名句</li>
             <li>关系发展时间线：初识 → 磨合 → 长久建议</li>
             <li>解锁后分享图去水印，高清无遮挡</li>
           </ul>

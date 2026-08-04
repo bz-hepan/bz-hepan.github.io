@@ -440,6 +440,22 @@ input:focus, select:focus {
 
 .deep-free-line { font-size: 13.5px; color: var(--ink); background: rgba(255, 255, 255, 0.6); border: 1px dashed var(--card-line); border-radius: 12px; padding: 13px 15px; margin: 14px 0; text-align: left; line-height: 1.7; }
 
+/* 缘分关键词标签云 */
+.du-keywords { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; margin-top: 4px; }
+.du-kw { font-size: 13px; color: #fff; background: linear-gradient(135deg, var(--pink-deep), var(--purple-deep)); padding: 6px 15px; border-radius: 20px; letter-spacing: 1px; font-family: var(--font-cn); }
+/* 专属开运守护 */
+.du-lucky { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.du-lucky-item { flex: 1 1 130px; background: rgba(255, 255, 255, 0.62); border: 1px solid var(--card-line); border-radius: var(--radius-sm); padding: 13px 15px; border-top: 3px solid var(--purple-deep); }
+.du-lucky-item.du-lucky-wide { flex: 1 1 100%; border-top-color: var(--pink-deep); }
+.du-lucky-k { font-size: 12px; color: var(--pink-deep); margin-bottom: 6px; letter-spacing: 1px; }
+.du-lucky-v { font-size: 14px; color: var(--ink); line-height: 1.6; }
+/* 沟通风格与化解话术 */
+.du-talk { font-size: 14px; color: var(--ink); background: rgba(255, 255, 255, 0.55); border-left: 3px solid var(--purple-deep); border-radius: 8px; padding: 9px 13px; margin: 8px 0; line-height: 1.6; }
+.du-talk-tip { font-size: 13.5px; color: var(--pink-deep); background: rgba(226, 85, 143, 0.08); border-radius: 10px; padding: 11px 14px; margin: 10px 0 0; line-height: 1.7; }
+/* 专属缘分词 */
+.du-signature { background: linear-gradient(135deg, rgba(124, 91, 191, 0.08), rgba(226, 85, 143, 0.08)); border: 1px solid var(--card-line); }
+.du-sig-text { font-family: var(--font-cn); font-size: 15.5px; color: var(--purple-deep); line-height: 2; letter-spacing: 1px; text-align: center; padding: 6px 4px; }
+
 /* ===== 解锁弹窗 ===== */
 .modal-mask { position: fixed; inset: 0; z-index: 50; background: rgba(74, 59, 82, 0.45); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .modal-card { position: relative; width: 100%; max-width: 420px; background: rgba(255, 255, 255, 0.96); border: 1px solid var(--card-line); border-radius: var(--radius); padding: 28px 24px 22px; box-shadow: 0 20px 60px rgba(124, 91, 191, 0.32); animation: fadeUp 0.3s ease; }

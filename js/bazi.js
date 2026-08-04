@@ -564,6 +564,48 @@
     if (res.dimensions.gan.label.includes('相制')) taboo.push('意见不合时少用反问句，多用“我理解你”开头。');
     if (!taboo.length) taboo.push('你们的气场相对温和，最大的禁忌是“想当然”——再合也要记得表达爱意。');
 
+    // —— 缘分关键词（标签云，按数据自动判定）——
+    const kw = [];
+    if (res.total >= 75) kw.push('天作之合');
+    if (res.dimensions.wuxing.score >= 82) kw.push('五行互补');
+    if (res.dimensions.yongshen.score >= 82) kw.push('互相成就');
+    if (res.dimensions.zhi.label.includes('三合') || res.dimensions.zhi.label.includes('六合')) kw.push('磁场相吸');
+    if (res.dimensions.gan.label.includes('相合')) kw.push('心意相通');
+    if (res.dimensions.fate.score >= 82 || res.dimensions.fate.label.includes('合')) kw.push('根基深厚');
+    if (res.dimensions.zhi.label.includes('冲')) kw.push('欢喜冤家');
+    if (res.total < 45) kw.push('细水长流');
+    kw.push('互补成长');
+    if (kw.length < 5) kw.push('灵魂搭子');
+    const keywords = kw.slice(0, 6);
+
+    // —— 专属开运守护（幸运色 / 开运小物 / 宜一起做）——
+    const wxColorMap = { 木: '青绿·森林色', 火: '红橙·暖阳色', 土: '米黄·大地色', 金: '白金·月光色', 水: '黑蓝·深海色' };
+    const wxItemMap = { 木: '绿植 / 木质手串', 火: '香薰蜡烛 / 暖灯', 土: '陶瓷杯 / 棉麻织物', 金: '金属腕表 / 银饰', 水: '水晶 / 小鱼缸' };
+    const xiUnion = Array.from(new Set([...pa.xi, ...pb.xi])).filter(w => wxColorMap[w]);
+    const luckyColors = xiUnion.map(w => wxColorMap[w]);
+    const luckyItems = xiUnion.map(w => wxItemMap[w]);
+    const luckyScenes = missingWX.length
+      ? missingWX.map(w => map[w]).join('；')
+      : '一起布置温馨小家、逛展看电影，平平淡淡最养感情。';
+
+    // —— 沟通风格与化解话术 ——
+    const talkStyle = {
+      木: '有主见、要空间，别逼太紧', 火: '热情直接、情绪来得快，哄一哄就好',
+      土: '稳重慢热，需要时间暖化', 金: '理性干脆、有话直说，记得裹层糖',
+      水: '灵活善变、怕被框死，给点确定性'
+    };
+    const talk = {
+      a: 'A（日主' + a.dayMaster + '·' + a.dayMasterWX + '）' + talkStyle[a.dayMasterWX],
+      b: 'B（日主' + b.dayMaster + '·' + b.dayMasterWX + '）' + talkStyle[b.dayMasterWX],
+      tip: '争执时先复述对方的话、确认“我听懂了”，再表达自己——误会往往死在“你根本不懂我”。'
+    };
+
+    // —— 专属缘分词（古风签名句）——
+    const unionLabel = missingWX.length ? '各有所偏' : '俱全';
+    const signature = a.zodiac + '与' + b.zodiac + '相映成趣，五行' + unionLabel + '、日主' + a.dayMaster + '/' + b.dayMaster + '遥相呼应——'
+      + '宜' + (missingWX.length ? missingWX.map(w => map[w].slice(0, 5)).join('、') : '细水长流地陪伴')
+      + '，惜' + (keywords[0] || '彼此') + '。此缘，值得慢慢养。';
+
     return {
       personA: { ...pa },
       personB: { ...pb },
@@ -571,7 +613,11 @@
       deep,
       tune,
       taboo,
-      timeline: timelineOf(res.total)
+      timeline: timelineOf(res.total),
+      keywords,
+      lucky: { colors: luckyColors, items: luckyItems, scenes: luckyScenes },
+      talk,
+      signature
     };
   }
 
