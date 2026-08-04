@@ -606,14 +606,19 @@
     document.getElementById('ocClose').addEventListener('click', closeOc);
     oc.addEventListener('click', (e) => { if (e.target === oc) closeOc(); });
     document.getElementById('ocGen').addEventListener('click', () => {
-      const token = (document.getElementById('ocToken').value || '').trim().toUpperCase();
-      if (!token) { alert('请填写用户的「配对暗号」\n（用户在网站合盘后，锁定面板里会显示「本配对暗号」，把它复制发给你即可）'); return; }
       const out = document.getElementById('ocOut');
-      out.hidden = false;
-      const code = makeCode(token, monthKeyOf(new Date()));
-      out.innerHTML = '当前解锁码：<b class="oc-code">' + code + '</b>' +
-        '<span class="oc-win">有效期月份：' + monthKeyOf(new Date()) + '（上月也有效）</span>' +
-        '<span class="oc-win">配对暗号：' + token + '</span>';
+      try {
+        const token = (document.getElementById('ocToken').value || '').trim().toUpperCase();
+        if (!token) { alert('请填写用户的「配对暗号」\n（用户在网站合盘后，锁定面板里会显示「本配对暗号」，把它复制发给你即可）'); return; }
+        out.hidden = false;
+        const code = makeCode(token, monthKeyOf(new Date()));
+        out.innerHTML = '当前解锁码：<b class="oc-code">' + code + '</b>' +
+          '<span class="oc-win">有效期月份：' + monthKeyOf(new Date()) + '（上月也有效）</span>' +
+          '<span class="oc-win">配对暗号：' + token + '</span>';
+      } catch (e) {
+        out.hidden = false;
+        out.innerHTML = '<span class="oc-err">生成出错：' + (e && e.message ? e.message : e) + '</span>';
+      }
     });
   }
   initOwnerConsole();
