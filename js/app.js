@@ -14,14 +14,50 @@
   //  - 用户加站长微信，发送出生信息即可领取专属码
   const PAY = {
     wechat: 'aichishutiaodewo',
-    // 站长备用总码（仅自己测试用，不参与"每对不同"规则）
+    // 站长万能测试码（静态，不参与"每对不同"，仅本地兜底）
     codes: ['YUAN2026'],
-    // 站长控制台入口：网址后加 ?op=ownerOp&key=ownerKey 才打开（如 .../?op=yuan-admin-2026&key=你的密令）
-    // ownerKey 仅作"防随手猜网址"的软门槛，写在网页里并非真加密；密令请设长一点并自行修改
+    // 站长控制台入口软门槛：网址后加 ?op=ownerOp&key=ownerKey 才打开
+    // ownerKey 仅作"防随手猜网址"，非真加密
     ownerOp: 'yuan-admin-2026',
     ownerKey: 'yzHP2026$xK7mPq2vN'
   };
-  const CODE_SALT = 'bazi-hepan-yuan-2026';
+
+  // ===== 解锁码本地生成（前端自包含，无需后端）=====
+  // 原理：解锁码 = 哈希( 配对签名 + 当前月份 + 盐值 ) 派生的 8 位确定性字符串
+  //  - 不同配对 → 不同码（sig 不同）
+  //  - 每月滚动更新，上月有 1 个月宽限期
+  //  - 站长控制台本地直接算码
+  //  - 注意：算法在前端源码中可见，属于"低成本防白嫖"方案；
+  //    如需更强防逆向，请改用 scf/ 目录里的后端方案（需自行部署）
+  // 改这个值可让所有已发的旧码立即失效：
+  const CODE_SALT = 'yuan-bazi-2026-v1';
+
+  // 月份键（UTC，避免时区导致跨月抖动）
+  function monthKeyOf(d) {
+    return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
+  }
+
+  // 由 配对签名 + 月份 + 盐 派生确定性 8 位解锁码（去掉易混字符 0/O/1/I/L）
+  function makeCode(sig, monthKey) {
+    const base = sig + '|' + monthKey + '|' + CODE_SALT;
+    let h = hashStr(base);
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 8; i++) {
+      s += alphabet[h % alphabet.length];
+      h = (Math.floor(h / alphabet.length) ^ (h << 1)) >>> 0;
+    }
+    return s;
+  }
+
+  // 当前月 + 上月（宽限窗口），用于校验
+  function monthWindows() {
+    const now = new Date();
+    const cur = monthKeyOf(now);
+    const prevDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const prev = monthKeyOf(prevDate);
+    return [cur, prev];
+  }
 
   // —— 配对签名：由双方八字四柱生成，顺序无关 ——
   function pairSig(a, b) {
@@ -32,25 +68,11 @@
   function shortToken(sig) {
     return hashStr(sig).toString(36).toUpperCase().slice(0, 6).padStart(6, '0');
   }
-  // —— 时间窗口：按月滚动，返回 [当月, 上月] ——
-  function monthWindows() {
-    const d = new Date();
-    let y = d.getFullYear(), m = d.getMonth();
-    const cur = y * 100 + (m + 1);
-    let py = y, pm = m - 1;
-    if (pm < 0) { pm = 11; py = y - 1; }
-    return [cur, py * 100 + (pm + 1)];
-  }
-  // —— 哈希 & 解锁码生成 ——
+  // —— 哈希（仅用于生成不可逆的「配对暗号」，不用于推导解锁码）——
   function hashStr(s) {
     let h = 2166136261;
     for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
     return h >>> 0;
-  }
-  function makeCode(sig, win) {
-    const h = hashStr(sig + '|' + win + '|' + CODE_SALT);
-    const body = h.toString(36).toUpperCase().padStart(7, '0').slice(-7);
-    return 'Y' + body; // 形如 YK3F9ZQ2
   }
 
   // —— 解锁状态：按「配对」记录，每对独立 ——
@@ -372,17 +394,22 @@
     const code = (els.unlockCode.value || '').trim().toUpperCase();
     if (!code) { showUnlockMsg('请输入解锁码', false); return; }
     if (!currentSig) { showUnlockMsg('请先完成一次合盘', false); return; }
-    const [cur, prev] = monthWindows();
-    const ok = code === makeCode(currentSig, cur) || code === makeCode(currentSig, prev) || PAY.codes.includes(code);
+    // 站长万能测试码（静态，不参与"每对不同"，仅本地兜底）
+    if (PAY.codes.includes(code)) { finishUnlock(); return; }
+    // 本地验证：当月 + 上月任一匹配即通过
+    const ok = monthWindows().some(w => makeCode(currentSig, w) === code);
     if (ok) {
-      unlockPair(currentSig);
-      closeModal();
-      showUnlockMsg('解锁成功，正在刷新…', true);
-      if (lastCalc) renderDeepZone(lastCalc.pa, lastCalc.pb, lastCalc.res);
-      els.shareBtn.textContent = '📸 保存无水印高清图';
+      finishUnlock();
     } else {
-      showUnlockMsg('解锁码不正确，请核对或联系站长微信 ' + PAY.wechat, false);
+      showUnlockMsg('解锁码不正确或已过期，请核对，或联系站长微信 ' + PAY.wechat, false);
     }
+  }
+  function finishUnlock() {
+    unlockPair(currentSig);
+    closeModal();
+    showUnlockMsg('解锁成功，正在刷新…', true);
+    if (lastCalc) renderDeepZone(lastCalc.pa, lastCalc.pb, lastCalc.res);
+    els.shareBtn.textContent = '📸 保存无水印高清图';
   }
 
   async function saveShare() {
@@ -595,11 +622,11 @@
       const pa = B.parseBazi(ay, am, ad, sa);
       const pb = B.parseBazi(by, bm, bd, sb);
       const sig = pairSig(pa, pb);
-      const [cur, prev] = monthWindows();
       const out = document.getElementById('ocOut');
       out.hidden = false;
-      out.innerHTML = '当前解锁码：<b class="oc-code">' + makeCode(sig, cur) + '</b>' +
-        '<span class="oc-win">有效期：' + cur + '（上个月 ' + prev + ' 也有效）</span>' +
+      const code = makeCode(sig, monthKeyOf(new Date()));
+      out.innerHTML = '当前解锁码：<b class="oc-code">' + code + '</b>' +
+        '<span class="oc-win">有效期月份：' + monthKeyOf(new Date()) + '（上月也有效）</span>' +
         '<span class="oc-win">配对暗号：' + shortToken(sig) + '</span>';
     });
   }
