@@ -257,12 +257,9 @@
     <div class="modal-card oc-card">
       <button id="ocClose" class="modal-close" type="button" aria-label="关闭">×</button>
       <h3 class="modal-title">站长 · 解锁码生成器</h3>
-      <p class="modal-desc">输入用户配对的出生信息，生成<strong>当前月份专属解锁码</strong>。仅站长可见。</p>
+      <p class="modal-desc">让用户把网站上的「本配对暗号」复制发给你，粘贴到下面，即可生成<strong>当前月份专属解锁码</strong>。仅站长可见。</p>
       <div class="oc-grid">
-        <label>命主 A 出生日期<input type="date" id="ocDateA" /></label>
-        <label>命主 A 时辰<select id="ocTimeA"></select></label>
-        <label>命主 B 出生日期<input type="date" id="ocDateB" /></label>
-        <label>命主 B 时辰<select id="ocTimeB"></select></label>
+        <label>用户配对暗号（用户在网站合盘后锁定面板里复制）<input type="text" id="ocToken" placeholder="如 A1B2C3" maxlength="8" autocomplete="off" /></label>
       </div>
       <button id="ocGen" class="calc-btn small" type="button">生成解锁码</button>
       <div id="ocOut" class="oc-out" hidden></div>

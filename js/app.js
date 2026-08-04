@@ -363,7 +363,7 @@
           <span class="deep-badge">专属解锁 · 每对不同</span>
           <h3>想知道你们更深的缘分吗？</h3>
           <p class="deep-free-line">${res.summary} 解锁后还能看到关系时间线、桃花 / 财运 / 事业专项解读，以及无水印高清分享图。</p>
-          <div class="deep-pair-token">本配对暗号：<b>${token}</b><span class="deep-pair-note">把暗号 + 你们俩的出生年月日与时辰发给站长微信，领取本配对专属解锁码</span></div>
+          <div class="deep-pair-token">本配对暗号：<b>${token}</b><span class="deep-pair-note">复制这个暗号 + 你们俩的出生年月日与时辰发给站长微信，即可领取本配对专属解锁码（填码时只需输入解锁码）</span></div>
           <ul class="deep-feature-list">
             <li>双人命格详批：日主强弱、喜用神、性格深度</li>
             <li>缘分深度长文：从命理看你们的相处底色</li>
@@ -396,8 +396,8 @@
     if (!currentSig) { showUnlockMsg('请先完成一次合盘', false); return; }
     // 站长万能测试码（静态，不参与"每对不同"，仅本地兜底）
     if (PAY.codes.includes(code)) { finishUnlock(); return; }
-    // 本地验证：当月 + 上月任一匹配即通过
-    const ok = monthWindows().some(w => makeCode(currentSig, w) === code);
+    // 本地验证：用本页配对暗号(由出生数据派生) + 当月/上月任一匹配即通过
+    const ok = monthWindows().some(w => makeCode(shortToken(currentSig), w) === code);
     if (ok) {
       finishUnlock();
     } else {
@@ -601,33 +601,19 @@
     if (params.get('key') !== PAY.ownerKey) return; // 口令不对 → 不显示控制台（静默）
     const oc = document.getElementById('ownerConsole');
     if (!oc) return;
-    const fill = (id, src) => {
-      const el = document.getElementById(id), s = document.getElementById(src);
-      if (el && s) el.innerHTML = s.innerHTML;
-    };
-    fill('ocTimeA', 'timeA');
-    fill('ocTimeB', 'timeB');
     oc.hidden = false;
     const closeOc = () => { oc.hidden = true; };
     document.getElementById('ocClose').addEventListener('click', closeOc);
     oc.addEventListener('click', (e) => { if (e.target === oc) closeOc(); });
     document.getElementById('ocGen').addEventListener('click', () => {
-      const da = document.getElementById('ocDateA').value;
-      const db = document.getElementById('ocDateB').value;
-      if (!da || !db) { alert('请填写两位命主的出生日期'); return; }
-      const [ay, am, ad] = da.split('-').map(Number);
-      const [by, bm, bd] = db.split('-').map(Number);
-      const sa = document.getElementById('ocTimeA').value || '子';
-      const sb = document.getElementById('ocTimeB').value || '子';
-      const pa = B.parseBazi(ay, am, ad, sa);
-      const pb = B.parseBazi(by, bm, bd, sb);
-      const sig = pairSig(pa, pb);
+      const token = (document.getElementById('ocToken').value || '').trim().toUpperCase();
+      if (!token) { alert('请填写用户的「配对暗号」\n（用户在网站合盘后，锁定面板里会显示「本配对暗号」，把它复制发给你即可）'); return; }
       const out = document.getElementById('ocOut');
       out.hidden = false;
-      const code = makeCode(sig, monthKeyOf(new Date()));
+      const code = makeCode(token, monthKeyOf(new Date()));
       out.innerHTML = '当前解锁码：<b class="oc-code">' + code + '</b>' +
         '<span class="oc-win">有效期月份：' + monthKeyOf(new Date()) + '（上月也有效）</span>' +
-        '<span class="oc-win">配对暗号：' + shortToken(sig) + '</span>';
+        '<span class="oc-win">配对暗号：' + token + '</span>';
     });
   }
   initOwnerConsole();
