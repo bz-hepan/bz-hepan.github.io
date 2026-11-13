@@ -483,35 +483,235 @@
       xi = [wx, shengWX]; // 同、生
     }
     const xiDesc = '喜' + xi.join('、') + '为用';
-    // 性格深度：结合强弱给一句
-    let tone;
-    if (strength === '偏旺') tone = '更有主见、能扛事，但偶尔要学着示弱与倾听';
-    else if (strength === '偏弱') tone = '更需被托住、被理解，温柔里有韧性';
-    else tone = '状态平稳、好相处，情绪相对稳定';
-    return { strength, xi, xiDesc, tone };
+    const xiWhy = strength === '偏旺'
+      ? `命局里「${wx}」气偏重（四柱中出现 ${cnt} 次），宜用克、泄、耗把过旺的能量疏散开，反而更从容；`
+      : `命局里「${wx}」气偏轻（四柱中出现 ${cnt} 次），宜用同类与生我者扶一把，被托住时状态最好。`;
+    const toneMap = {
+      偏旺: '更有主见、能扛事，习惯先把责任揽到自己身上；偶尔要学着示弱与倾听，别把「我来」当成唯一的表达方式',
+      偏弱: '更需被托住、被理解，温柔里有韧性；看似退让，其实心里很有数，被认真对待时会给出加倍的回应',
+      中和: '状态平稳、好相处，情绪起伏不大；遇事既能坚持也能转圜，是关系里天然的缓冲带'
+    };
+    const needMap = {
+      木: '最需要的是「可以自由生长的空间」，被安排得太满会悄悄收紧',
+      火: '最需要的是「被看见、被回应」，冷落比争吵更伤',
+      土: '最需要的是「确定感」，临时变卦会让她不安',
+      金: '最需要的是「边界被尊重」，答应的事请做到',
+      水: '最需要的是「不被框死」，留一点弹性才自在'
+    };
+    const paceMap = {
+      木: '慢热但长情，认定了会一年年往下扎根',
+      火: '来得快、热得明显，情绪起伏也写在脸上',
+      土: '节奏稳、不轻易变，靠近需要一点耐心',
+      金: '干脆利落，喜欢把话说清楚、把事定下来',
+      水: '随势而动，忽近忽远其实是在找舒服的距离'
+    };
+    return {
+      strength, xi, xiDesc, xiWhy,
+      tone: toneMap[strength],
+      need: needMap[wx],
+      pace: paceMap[wx],
+      gan: p.dayMaster, wx, count: cnt
+    };
   }
 
   function timelineOf(total) {
     if (total >= 70) return [
-      { stage: '初识', tip: '一拍即合，趁热打铁多制造共同回忆。' },
-      { stage: '磨合', tip: '少争对错、多问感受，关系会越养越厚。' },
-      { stage: '长久', tip: '适合一起规划未来（同居 / 旅行 / 事业），把缘分落进生活。' }
+      { stage: '初识 · 一见如故', tip: '一拍即合，趁热打铁多制造共同回忆；这阶段的默契是天生的，别刻意去考验它。' },
+      { stage: '靠近 · 加速期', tip: '会很快进入「什么都想一起」的状态，记得各留一点自己的朋友圈，关系反而更耐处。' },
+      { stage: '磨合 · 首次分歧', tip: '少争对错、多问感受。高分组合最容易栽在「我以为你懂」，把话说明白是必修课。' },
+      { stage: '长久 · 落进生活', tip: '适合一起规划未来（同居、旅行、共同储蓄），把缘分从情绪落进日程里，越养越厚。' }
     ];
     if (total >= 55) return [
-      { stage: '初识', tip: '慢热但稳，给彼此多一点靠近的时间。' },
-      { stage: '磨合', tip: '把小情绪说出口，别攒成心结。' },
-      { stage: '长久', tip: '固定一些只属于两人的小仪式，感情有锚点。' }
+      { stage: '初识 · 慢慢靠近', tip: '慢热但稳，给彼此多一点靠近的时间；不急着定义关系，反而更容易看清对方。' },
+      { stage: '靠近 · 建立习惯', tip: '固定的联系节奏比密集的甜言蜜语更管用，一个小仪式就能把关系稳住。' },
+      { stage: '磨合 · 把话说开', tip: '把小情绪及时说出口，别攒成心结；你们的问题不在合不合，而在说不说。' },
+      { stage: '长久 · 细水长流', tip: '固定只属于两人的小仪式（周末一顿饭、睡前一段话），感情就有了锚点。' }
     ];
     if (total >= 40) return [
-      { stage: '初识', tip: '火花足但也易擦枪走火，先当朋友摸清脾气。' },
-      { stage: '磨合', tip: '争执时各退十分钟，把"讲赢"换成"懂你"。' },
-      { stage: '长久', tip: '找共同爱好当缓冲带，摩擦也能变成情趣。' }
+      { stage: '初识 · 火花期', tip: '火花足但也易擦枪走火，先当朋友摸清彼此脾气，别在最上头的时候做决定。' },
+      { stage: '靠近 · 找节奏', tip: '一进一退容易互相误会，先约定「忙的时候怎么报备」，比猜心思省力得多。' },
+      { stage: '磨合 · 学会暂停', tip: '争执时各退十分钟，把「讲赢」换成「懂你」；你们的张力用好了是火花，用不好才是内耗。' },
+      { stage: '长久 · 共同缓冲带', tip: '找一个共同爱好当缓冲带，摩擦也能变成情趣；差异不必消灭，安置好就行。' }
     ];
     return [
-      { stage: '初识', tip: '缘分浅，不强求，当段舒服的相遇就好。' },
-      { stage: '磨合', tip: '差异大时少评判、多好奇，反而能互相学到东西。' },
-      { stage: '长久', tip: '顺其自然，经营得好也能日久生情。' }
+      { stage: '初识 · 舒服的相遇', tip: '缘分浅不必强求，当一段舒服的相遇就好；先别急着给关系命名。' },
+      { stage: '靠近 · 保持好奇', tip: '差异大时少评判、多好奇，反而能从对方身上学到自己没有的东西。' },
+      { stage: '磨合 · 降低期待', tip: '把「她应该懂我」换成「我可以说给她听」，期待一降，相处就松了。' },
+      { stage: '长久 · 顺其自然', tip: '顺其自然，经营得好也能日久生情；不合适的节奏，优雅退场也是一种成全。' }
     ];
+  }
+
+  // ============================================================
+  // 深度报告 · 富文本扩展
+  // 不改动 deepReport 原有字段与算法，只附加更详尽的分段长文、
+  // 专项解读、角色分工、情绪节奏、相处计划与可直接照着说的话术。
+  // ============================================================
+  function buildRichReport(a, b, res, pa, pb) {
+    const d = res.dimensions;
+    const rateOf = (x) => x.score / x.max;
+    const ranked = [
+      { k: '生肖默契', v: d.zodiac },
+      { k: '五行互补', v: d.wuxing },
+      { k: '性格相合', v: d.gan },
+      { k: '地支互动', v: d.zhi },
+      { k: '缘分根基', v: d.fate },
+      { k: '用神互补', v: d.yongshen }
+    ].sort((x, y) => rateOf(y.v) - rateOf(x.v));
+    const strongest = ranked[0], weakest = ranked[ranked.length - 1];
+
+    const unionWX = new Set([...a.distinctElements, ...b.distinctElements]);
+    const missingWX = WUXING.filter(w => !unionWX.has(w));
+    const wxScene = {
+      木: '多接触绿植与树林、用青绿色小物、一起养一盆植物',
+      火: '多晒太阳、点一盏暖灯或香薰、穿红橙色系',
+      土: '把居家环境布置得温软些、用米黄棕色、一起做饭',
+      金: '保持空间清爽、佩戴银色小物、把计划写下来',
+      水: '多近水边散步、听流水声、穿黑蓝色系'
+    };
+
+    // —— 桃花专项（细到四柱里桃花出现的处数）——
+    const peach = (p) => p.pillars.filter(pl => ['子', '午', '卯', '酉'].includes(pl.zhi));
+    const ca = peach(a).length, cb = peach(b).length;
+    const taohuaRich = (ca && cb)
+      ? `双方四柱里都见桃花（${a.zodiac}方 ${ca} 处、${b.zodiac}方 ${cb} 处），这组关系的吸引力是双向且外显的：容易被彼此的气质、表达、甚至说话的方式打动，站在人群里也常被注意到。好处是心动感充足、不缺浪漫；要留意的是桃花旺的人对情绪格外敏感，一句没接住的玩笑可能被放大。把这份敏锐用在彼此身上——多回应、少晾着，火花就会一直温着，而不是烧完就散。`
+      : (ca || cb)
+        ? `两人中有一方桃花较旺（${ca ? a.zodiac : b.zodiac}方命带 ${ca || cb} 处桃花），会把更多浪漫、仪式感与关注度带进关系：主动找话题、记得小日子、愿意制造惊喜。另一方不必勉强配合同样的浓度，安心接住、认真回应就很好。桃花偏弱的那一方更擅长把关系过成日常，这恰好是让心动落地的能力——一个负责点亮，一个负责守灯。`
+        : `两人四柱桃花都偏少，感情不靠一时的来电，而靠「越了解越上头」。你们更可能从默契、可靠、被稳稳照顾的感觉里生出喜欢，起步慢一点，但一旦认定就很稳。建议主动给关系添一点新鲜感：换条路线散步、一起试件没做过的事，细水也能起涟漪。`;
+
+    // —— 财运专项（我克者为财）——
+    const caiWXa = KE[a.dayMasterWX], caiWXb = KE[b.dayMasterWX];
+    const caiSum = (a.elementCounts[caiWXa] || 0) + (b.elementCounts[caiWXb] || 0);
+    const wealthRich = `以「我克者为财」来看，${a.zodiac}方财星属${caiWXa}、${b.zodiac}方财星属${caiWXb}，两人命盘合计见 ${caiSum} 处财气。`
+      + (caiSum >= 3
+        ? `财星两旺，你们对「把日子过好」这件事都有驱动力，一起规划小事业、共同储蓄或攒一笔旅行基金会很合拍。钱的话题在你们之间不该是禁忌：把预算摊开聊，反而比各自猜测更亲密。要留意的是两人都想拿主意时容易较劲，建议按「谁更擅长谁负责」分工，别在同一笔账上争主导权。`
+        : caiSum === 2
+          ? `财星各一位，求财风格恰好互补——一个敢想、一个稳健，搭伙正好。适合设一个共同的、金额不大的小目标（一次短途旅行、一件想一起买的家具），用可见的进度给关系添点成就感。花钱观念有出入时，先约定「各自可自由支配的额度」，剩下的再一起商量，摩擦会少很多。`
+          : `财星偏弱，两人对钱都偏随性，不太爱精打细算，也不容易为计较伤感情。风险在于容易「一起月光」或谁都不好意思提钱。建议给关系设一两个共同小目标，再开一个只属于两人的小账本，不必严格，有个锚点就够了。`);
+
+    // —— 事业 / 协作专项 ——
+    const zhiLabel = d.zhi.label;
+    const careerRich = (zhiLabel.includes('合') || zhiLabel.includes('三合'))
+      ? `地支「${zhiLabel}」让你们在协作里天然互相搭台：一个出主意、一个落地，一个看方向、一个盯细节，组合战斗力很强。适合一起做需要长期配合的事（共同项目、开店、备考、装修）。要提醒的是顺手也容易顺手包办，尽量把「谁拍板、谁执行、什么时候复盘」说清楚，免得默契变成默认某一个人多扛。`
+      : zhiLabel.includes('冲')
+        ? `地支「${zhiLabel}」意味着观点常碰撞，短期内不算省力，但正因如此反而少有盲区——你们能看到对方看不到的风险。协作前先花十分钟定好分工与决策规则（比如「谁的专业谁说了算」），把争论限定在事情上，不滑向人的对错，这股张力就能变成产出。`
+        : `事业上你们节奏接近、都不爱极端，一起做点什么会很合拍，问题往往不在能力而在角色重叠：两个人都想照顾全局，反而没人拍板。建议按各自日主的长处分工（${pa.wx}气偏「${pa.gan}」的踏实与生发，${pb.wx}气偏「${pb.gan}」的灵动与承接），把边界画出来，配合就顺了。`;
+
+    // —— 五行调和（更具体的可执行清单）——
+    const tuneRich = missingWX.length
+      ? `两人四柱合起来偏缺「${missingWX.join('、')}」，气场里少了这几味的流动，相处上容易表现为：${missingWX.map(w => ({ 木: '不太会主动开新话题', 火: '情绪表达偏含蓄、热度起得慢', 土: '缺少落地的稳定感、计划容易悬着', 金: '边界与规则模糊、该断的事拖着', 水: '少一点松弛与变通、容易硬碰硬' }[w])).join('；')}。`
+        + `不必紧张，命理讲「缺则可补」，生活里补比改性格容易得多：${missingWX.map(w => wxScene[w]).join('；')}。`
+        + `另外，${a.zodiac}方${pa.xiDesc}、${b.zodiac}方${pb.xiDesc}，两人喜用各有侧重，选一起做的事时轮流迁就，比单方面配合更长久。`
+      : `两人五行俱全，气场相对平衡，几乎不挑相处场景：热闹的聚会、安静的居家、需要协作的事都能接得住。这种组合不需要刻意「补什么」，更值得留意的是别把平衡过成平淡——定期一起试件没做过的事，让五种能量都流动起来。${a.zodiac}方${pa.xiDesc}、${b.zodiac}方${pb.xiDesc}，喜用略有不同，正好可以轮流挑约会主题，各带对方进一次自己的世界。`;
+
+    // —— 缘分深度长文（四段）——
+    const deepParas = [
+      `${a.zodiac}与${b.zodiac}的组合，${res.summary} 先把两张命盘摊开看：${a.zodiac}方日主${a.dayMaster}（${a.dayMasterWX}·${pa.strength}，${pa.xiDesc}），${b.zodiac}方日主${b.dayMaster}（${b.dayMasterWX}·${pb.strength}，${pb.xiDesc}）。${pa.xiWhy}${pb.xiWhy}一个${pa.tone}；一个${pb.tone}。这不是谁强谁弱，而是两张盘各自带着不同的季节出生，本来就该有不同的呼吸方式。`,
+
+      `你们最亮的那一维是「${strongest.k}」（${strongest.v.score}/${strongest.v.max}，标签为「${strongest.v.label}」）。${strongest.v.text} 换句话说，这段关系里有个不需要费力维护的部分——它会自动替你们把日子托住。吵架、忙碌、隔了一阵没见，回头时靠的往往就是这块底色。生肖「${d.zodiac.label}」定下初见时的亲近感，天干「${d.gan.label}」决定彼此怎么表达，地支「${d.zhi.label}」则写进了日常里那些说不清的顺与别扭。`,
+
+      `最需要留心的那一维是「${weakest.k}」（${weakest.v.score}/${weakest.v.max}）。${weakest.v.text} 这里要说实话：分数低不代表不合适，它只是标出了两人默认模式下最容易互相误读的地方。年柱「${d.fate.label}」、用神「${d.yongshen.label}」也在提醒同一件事——${d.yongshen.text} 命理里最养人的关系，从来不是处处都合，而是知道哪里需要多说一句、哪里可以放心沉默。`,
+
+      `所以这份报告想给的结论并不复杂：把「${strongest.k}」当成你们的根据地，多待在那里；把「${weakest.k}」当成需要一起学的功课，别当成对方的缺点。${res.total >= 70 ? '你们是那种越处越甜的组合，值得认真规划长远' : res.total >= 55 ? '你们是稳稳当当的陪伴型，慢一点反而走得更久' : res.total >= 40 ? '你们有火花也有摩擦，磨合好了会比一开始就顺的关系更有味道' : '缘分浅淡也不必遗憾，舒服地相处本身就是一种收获'}。八字写的是出生那一刻的天天气息，往后的日子，还是由你们一笔一笔自己写。`
+    ];
+
+    // —— 关系里的角色分工 ——
+    let roles;
+    if (SHENG[a.dayMasterWX] === b.dayMasterWX || SHENG[b.dayMasterWX] === a.dayMasterWX) {
+      const aGives = SHENG[a.dayMasterWX] === b.dayMasterWX;
+      roles = {
+        a: aGives ? `${a.zodiac}方（${a.dayMasterWX}生${b.dayMasterWX}）更像「给的人」：习惯先照顾、先张罗、先把对方的情绪接住，付出得自然，也容易忘了自己也会累。` : `${a.zodiac}方是承接的一方：被照顾时懂得回应，也擅长把对方给的热度安放到具体的生活里。`,
+        b: aGives ? `${b.zodiac}方是承接的一方：被照顾时懂得回应，也擅长把对方给的热度安放到具体的生活里。` : `${b.zodiac}方（${b.dayMasterWX}生${a.dayMasterWX}）更像「给的人」：习惯先照顾、先张罗、先把对方的情绪接住，付出得自然，也容易忘了自己也会累。`,
+        together: '相生的组合最怕「一边一直给、一边一直收」。建议每过一阵就换一次角色——让平时被照顾的人来安排一次约会、做一次决定，能量的流动才不会变成单方面的消耗。'
+      };
+    } else if (a.dayMasterWX === b.dayMasterWX) {
+      roles = {
+        a: `${a.zodiac}方与对方同为${a.dayMasterWX}气，思维、节奏、在意的事都很像，好处是「不用说就懂」，坏处是容易一起钻同一个牛角尖。`,
+        b: `${b.zodiac}方同样带着${b.dayMasterWX}气的底色，你们照镜子似的彼此熟悉，却也少了一点互补带来的新鲜感。`,
+        together: '同气组合最适合「各留一块自留地」：各自保有一个不重叠的爱好或圈子，回来才有话可聊。遇到分歧时，别指望对方自动唱反调，得有人主动扮演那个提不同意见的人。'
+      };
+    } else {
+      roles = {
+        a: `${a.zodiac}方日主${a.dayMaster}（${a.dayMasterWX}）与对方形成相制，习惯用自己的方式推进事情，观点鲜明、不太肯含糊。`,
+        b: `${b.zodiac}方日主${b.dayMaster}（${b.dayMasterWX}）同样有主张，两人碰在一起不会无聊，但也容易在同一件事上较劲。`,
+        together: '相制不是相克到底，而是「彼此磨出边界」。建议把决策按领域切开：各自最在意的那一块由本人拍板，交叉的事再一起商量。吵完记得补一句「我不是针对你」，这句比讲道理管用。'
+      };
+    }
+
+    // —— 情绪与相处节奏 ——
+    const rhythm = {
+      a: `${a.zodiac}方日主属${a.dayMasterYinYang}、${pa.strength}：${pa.pace}。${pa.need}。`,
+      b: `${b.zodiac}方日主属${b.dayMasterYinYang}、${pb.strength}：${pb.pace}。${pb.need}。`,
+      together: a.dayMasterYinYang === b.dayMasterYinYang
+        ? '两人阴阳同调，情绪起伏容易同步：一起开心时很亮，一起低落时也容易互相带着往下沉。约好一个「低电量信号」（比如一句「今天有点累」），让对方知道该给空间还是该靠近，比硬撑着体贴有效。'
+        : '一阴一阳，节奏天然错开：一个先热、一个后暖；一个想说清楚、一个需要缓一缓。这其实是很好的缓冲，别把「她怎么不马上回应」解读成不在意，给慢的那一方留半拍，很多误会根本不会发生。'
+    };
+
+    // —— 未来三个月相处小计划 ——
+    const plan = [
+      {
+        title: '第 1 个月 · 把话说明白',
+        tip: `挑一个都不忙的时段，聊聊彼此「希望被怎样对待」。${rhythm.together}不用谈得多郑重，把默认期待摊开，后面两个月会省掉大半猜测。`
+      },
+      {
+        title: '第 2 个月 · 补上缺的那一味',
+        tip: missingWX.length
+          ? `两人五行偏缺「${missingWX.join('、')}」，这个月安排一件对应小事就好：${missingWX.slice(0, 2).map(w => wxScene[w]).join('；')}。共同经历比讲道理更能调气场。`
+          : '两人五行俱全，这个月不妨一起试件从没做过的事（新路线、新手艺、新馆子），让齐全的能量流动起来，别把平衡过成惯性。'
+      },
+      {
+        title: '第 3 个月 · 留一个只属于你们的仪式',
+        tip: `针对最弱的一维「${weakest.k}」，定一个低成本、能长期做的小动作：${weakest.k === '地支互动' ? '每周一次不插手机的共同时段，给变动留个稳锚' : weakest.k === '用神互补' ? '轮流安排一次约会，各带对方进一次自己的世界' : weakest.k === '性格相合' ? '有分歧时先复述对方的话，再说自己的' : '固定一句睡前的话，把亲近感养成习惯'}。三个月后回头看，关系往往就稳在这些小地方。`
+      }
+    ];
+
+    // —— 相处禁忌（更完整）——
+    const tabooRich = [
+      '别把「合盘分数」当成判决书，更别在争执时拿它当论据——分数说的是默认模式，不是人的上限。',
+      `别试图改造对方的日主本性：${a.zodiac}方${pa.need}，${b.zodiac}方${pb.need}。这些是底色，不是可以商量改掉的毛病。`
+    ];
+    if (d.zhi.label.includes('冲')) tabooRich.push('避免在情绪最满的时候争对错，先各自冷静二十分钟，再回来把事说完。');
+    if (d.wuxing.label.includes('相克')) tabooRich.push('少用「你总是」「你从来」，把评价换成具体的一次事件，火气会小一半。');
+    if (d.gan.label.includes('相制')) tabooRich.push('意见不合时别用反问句开场，试试「我理解你的意思，我担心的是……」。');
+    if (res.total >= 75) tabooRich.push('高分组合最容易犯的错是「想当然」——再默契，也要把感谢和喜欢说出口。');
+    if (missingWX.length) tabooRich.push(`两人同缺「${missingWX.join('、')}」，别在彼此都短的那件事上互相指望（比如都不擅长规划时，就别等对方来安排）。`);
+    tabooRich.push('不要把第三方的评价带进两个人的关系里，命理、朋友、家人都只是参考，过日子的是你们。');
+
+    // —— 可直接照着说的话术 ——
+    const scripts = [
+      `想靠近时：「今天有点想你，不用回也没关系，就是想让你知道。」——给${pa.need.includes('空间') || pb.need.includes('空间') ? '需要空间的一方' : '彼此'}留了退路，反而更容易被接住。`,
+      '有误会时：「我可能理解错了，你刚才是想说……对吗？」先复述再表达，比急着解释有效得多。',
+      `要拒绝时：「这件事我现在接不住，但我在意你，我们晚点再聊好不好？」——把「不行」和「不在乎」分开说，是${a.dayMasterWX === b.dayMasterWX ? '同气组合' : '你们这组'}最需要的一句。`,
+      `想和好时：「刚才我语气不好，不是针对你。我们重新来一次。」不翻旧账、不追对错，给台阶也给面子。`
+    ];
+
+    // —— 开运 · 宜忌 ——
+    const luckyAvoid = missingWX.length
+      ? `近期少把两人同时放进「${missingWX[0]}」气过重的场景里（例如${({ 木: '连着一整天户外奔波', 火: '密集社交与赶场', 土: '反复改计划、临时变卦', 金: '硬碰硬地谈规则与对错', 水: '行程完全不定、迟迟不落地' })[missingWX[0]]}），容易把原本就偏少的那味耗得更薄。`
+      : '五行俱全不忌什么，唯独忌「什么都不一起做」——再平衡的气场，也需要共同经历来养。';
+
+    // —— 缘分关键词（按得分率判定，修掉旧版阈值错误）——
+    const kw = [];
+    if (res.total >= 80) kw.push('天作之合');
+    else if (res.total >= 68) kw.push('越处越甜');
+    if (rateOf(d.wuxing) >= 0.8) kw.push('五行互补');
+    if (rateOf(d.yongshen) >= 0.78) kw.push('互相成就');
+    if (d.zhi.label.includes('合')) kw.push('磁场相吸');
+    if (d.gan.label.includes('五合')) kw.push('心意相通');
+    if (rateOf(d.fate) >= 0.8) kw.push('根基深厚');
+    if (d.zhi.label.includes('冲')) kw.push('欢喜冤家');
+    if (res.total < 45) kw.push('细水长流');
+    kw.push('互补成长');
+    if (kw.length < 5) kw.push('灵魂搭子', '慢热长情');
+    const keywordsRich = [...new Set(kw)].slice(0, 6);
+
+    const closing = `写到这里，其实想说的只有一句：${a.zodiac}与${b.zodiac}、${a.dayMaster}与${b.dayMaster}，这些字只是古人替出生那一刻留下的记号，它们能解释你们为什么容易靠近、又容易在哪里卡住，却解释不了你们后来一起吃过的那些饭、等过的那些雨、和好时的那个拥抱。合盘给的是一张地图，路还是要两个人自己走。若这份报告里有哪一句让你想起她，就把那一句留下来；其余的，看过就好。愿你们被温柔以待，也愿你们有能力温柔待人。🌷`;
+
+    return {
+      deepParas, taohuaRich, wealthRich, careerRich, tuneRich,
+      roles, rhythm, plan, tabooRich, scripts,
+      luckyAvoid, keywordsRich, closing,
+      strongest, weakest, missingWX
+    };
   }
 
   function deepReport(a, b, res) {
@@ -564,19 +764,8 @@
     if (res.dimensions.gan.label.includes('相制')) taboo.push('意见不合时少用反问句，多用“我理解你”开头。');
     if (!taboo.length) taboo.push('你们的气场相对温和，最大的禁忌是“想当然”——再合也要记得表达爱意。');
 
-    // —— 缘分关键词（标签云，按数据自动判定）——
-    const kw = [];
-    if (res.total >= 75) kw.push('天作之合');
-    if (res.dimensions.wuxing.score >= 82) kw.push('五行互补');
-    if (res.dimensions.yongshen.score >= 82) kw.push('互相成就');
-    if (res.dimensions.zhi.label.includes('三合') || res.dimensions.zhi.label.includes('六合')) kw.push('磁场相吸');
-    if (res.dimensions.gan.label.includes('相合')) kw.push('心意相通');
-    if (res.dimensions.fate.score >= 82 || res.dimensions.fate.label.includes('合')) kw.push('根基深厚');
-    if (res.dimensions.zhi.label.includes('冲')) kw.push('欢喜冤家');
-    if (res.total < 45) kw.push('细水长流');
-    kw.push('互补成长');
-    if (kw.length < 5) kw.push('灵魂搭子');
-    const keywords = kw.slice(0, 6);
+    // —— 缘分关键词：改由 buildRichReport 按「得分率」判定 ——
+    // （旧版用固定阈值 82 与各维 max 不匹配，导致多个标签永不出现，已修正）
 
     // —— 专属开运守护（幸运色 / 开运小物 / 宜一起做）——
     const wxColorMap = { 木: '青绿·森林色', 火: '红橙·暖阳色', 土: '米黄·大地色', 金: '白金·月光色', 水: '黑蓝·深海色' };
@@ -600,11 +789,14 @@
       tip: '争执时先复述对方的话、确认“我听懂了”，再表达自己——误会往往死在“你根本不懂我”。'
     };
 
+    // —— 富文本扩展（关键词按得分率重新判定）——
+    const rich = buildRichReport(a, b, res, pa, pb);
+
     // —— 专属缘分词（古风签名句）——
     const unionLabel = missingWX.length ? '各有所偏' : '俱全';
     const signature = a.zodiac + '与' + b.zodiac + '相映成趣，五行' + unionLabel + '、日主' + a.dayMaster + '/' + b.dayMaster + '遥相呼应——'
       + '宜' + (missingWX.length ? missingWX.map(w => map[w].slice(0, 5)).join('、') : '细水长流地陪伴')
-      + '，惜' + (keywords[0] || '彼此') + '。此缘，值得慢慢养。';
+      + '，惜' + (rich.keywordsRich[0] || '彼此') + '。此缘，值得慢慢养。';
 
     return {
       personA: { ...pa },
@@ -614,10 +806,11 @@
       tune,
       taboo,
       timeline: timelineOf(res.total),
-      keywords,
-      lucky: { colors: luckyColors, items: luckyItems, scenes: luckyScenes },
+      keywords: rich.keywordsRich,
+      lucky: { colors: luckyColors, items: luckyItems, scenes: luckyScenes, avoid: rich.luckyAvoid },
       talk,
-      signature
+      signature,
+      rich
     };
   }
 

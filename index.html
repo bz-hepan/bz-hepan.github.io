@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>双女八字合盘 · 缘分之轮</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
 </head>
 <body>
   <div class="bg-orbs">
@@ -14,8 +14,8 @@
   </div>
 
   <header class="site-header">
-    <h1>双女八字合盘</h1>
-    <p class="subtitle">两朵花，合不合得来 · 八字里的缘分与相处</p>
+    <h1>八字合盘</h1>
+    <p class="subtitle">合不合得来 · 八字里的缘分与相处</p>
     <p class="disclaimer-top">仅供娱乐参考，命理玄学无科学依据 🌸</p>
   </header>
 
@@ -131,6 +131,9 @@
         <div class="pillar-card" id="pillarB"></div>
       </div>
 
+      <!-- 五行能量分布（免费加厚） -->
+      <div id="wxChart"></div>
+
       <h3 class="section-title">五维合盘</h3>
       <div id="dimensions" class="dimensions"></div>
 
@@ -180,6 +183,69 @@
           <h4>天干地支怎么合？</h4>
           <p>天干有“五合”（甲己、乙庚、丙辛、丁壬、戊癸），地支有“六合”“三合”“六冲”。合表示吸引与默契，冲表示碰撞与磨合。</p>
         </article>
+        <article class="tip-card">
+          <h4>五行生克是什么？</h4>
+          <p>相生：木生火、火生土、土生金、金生水、水生木；相克：木克土、土克水、水克火、火克金、金克木。合盘里「相生」多指彼此滋养、付出能被接住，「相克」则是张力与磨合——两者都不等于好坏。</p>
+        </article>
+        <article class="tip-card">
+          <h4>纳音五行</h4>
+          <p>六十甲子每一组干支还配有一个「纳音」，如甲子、乙丑为「海中金」。本页四柱卡片下方能看到各柱纳音；年柱纳音常被用来看两人的根基、家庭背景是否相近。</p>
+        </article>
+        <article class="tip-card">
+          <h4>喜用神 · 合盘的关键</h4>
+          <p>日主过旺宜「泄、克、耗」，过弱宜「扶、生」，能让命局回到舒服状态的那味五行就是喜用神。合盘看用神，看的是：对方旺的那一味，是否恰好补上你缺的那一味。</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== 十天干日主速查（免费专区） ===== -->
+    <section class="gan-section">
+      <h3 class="section-title">🌿 十天干日主速查</h3>
+      <p class="poem-intro">合盘里最常提到的「日主」，就是你出生那天的天干。下面十张卡把每种日主的性情与相处提示都写好了——不用合盘也能看，全部免费。</p>
+      <div class="gan-grid" id="ganGrid"></div>
+    </section>
+
+    <!-- ===== 免费 vs 深度（未合盘也能看见付费价值） ===== -->
+    <section class="compare-section">
+      <h3 class="section-title">🌸 免费能看这些 · ✨ 深度报告再加这些</h3>
+      <p class="poem-intro">不做「先付钱才让看」那一套：先把能给的都给你，觉得还想看得更细，再往下看。</p>
+      <div class="compare-grid">
+        <div class="compare-col compare-free">
+          <div class="compare-head">
+            <span class="compare-ic">🌸</span>
+            <h4>免费 · 现在就能看</h4>
+            <span class="compare-badge">0 元</span>
+          </div>
+          <ul class="compare-list">
+            <li>缘分总分 + 星级评定</li>
+            <li>两人完整四柱排盘与纳音</li>
+            <li>六维度详细解读文字</li>
+            <li>日主性格画像 + 亮点 / 注意标签</li>
+            <li>五行能量分布图</li>
+            <li>8 条相处小锦囊</li>
+            <li>24 首双女诗词 + 十天干速查 + 八字小知识</li>
+            <li>保存分享图（体验版带水印）</li>
+          </ul>
+          <button id="goCalcBtn" class="compare-cta" type="button">✦ 先免费合个盘 ✦</button>
+        </div>
+        <div class="compare-col compare-deep">
+          <div class="compare-head">
+            <span class="compare-ic">✨</span>
+            <h4>深度报告 · 解锁后追加</h4>
+            <span class="compare-badge">按配对专属</span>
+          </div>
+          <ul class="compare-list">
+            <li>双人命格详批：强弱 / 喜用 / 各自所需</li>
+            <li>约 2800 字缘分深度长文（四段）</li>
+            <li>关系角色分工 + 情绪节奏分析</li>
+            <li>桃花 / 财运 / 事业 三项专项长文</li>
+            <li>五行调和指南 + 相处禁忌清单</li>
+            <li>四阶段时间线 + 三个月相处小计划</li>
+            <li>开运守护 / 话术例句 / 专属缘分词</li>
+            <li>无水印高清分享图</li>
+          </ul>
+          <p class="compare-note">合盘完成后，结果页底部可先试读一段、查看完整目录 🌷</p>
+        </div>
       </div>
     </section>
 
@@ -187,6 +253,18 @@
     <section class="faq-section">
       <h3 class="section-title">💬 常见问题</h3>
       <div class="faq-list" id="faqList">
+        <details class="faq-item" open>
+          <summary>免费版到底能看多少？会不会看到一半要钱？</summary>
+          <p>不会。缘分分、四柱排盘、六维解读、日主画像、五行分布图、8 条相处锦囊、24 首诗词、十天干速查、八字小知识，以及带水印的分享图，全部免费且完整可见，不需要注册、不需要解锁。只有结果页底部那份「深度缘分报告」属于付费内容，上面会先给你看完整目录和一段试读，觉得值再决定。</p>
+        </details>
+        <details class="faq-item">
+          <summary>深度报告有多长？是不是套模板？</summary>
+          <p>约 2800 字、十余个章节，按你们两人的四柱单独生成：日主强弱、喜用神、生肖与天干地支关系、五行偏缺都会参与行文，换一对人就是另一份。包含缘分长文、角色分工、情绪节奏、桃花 / 财运 / 事业专项、相处禁忌、四阶段时间线、三个月小计划、开运守护、沟通话术例句与专属缘分词。</p>
+        </details>
+        <details class="faq-item">
+          <summary>我填的出生信息会被保存吗？</summary>
+          <p>不会上传。整个网站是纯静态页面，排盘与合盘都在你的浏览器里完成，出生数据不会发到任何服务器，也不会被站长看到。网站只在本地记住「哪一对已经解锁过」，方便你下次打开不用重复输入解锁码。</p>
+        </details>
         <details class="faq-item">
           <summary>这个合盘结果准吗？</summary>
           <p>本网站属于传统文化娱乐工具，结果由八字规则自动生成，仅供参考。感情和相处最重要的是理解、沟通与陪伴，命理只是锦上添花。</p>
@@ -197,7 +275,7 @@
         </details>
         <details class="faq-item">
           <summary>为什么有“深度解锁”？</summary>
-          <p>基础合盘（缘分分、五维分析、锦囊、诗词）全部免费。深度报告包含命格详批、桃花/财运/事业专项、关系时间线等更丰富的内容，需要付费解锁。</p>
+          <p>基础合盘（缘分分、六维解读、四柱排盘、五行分布、锦囊、诗词、小知识）全部免费。深度报告是一份约 2800 字、十余章节的专属长文，包含命格详批、角色分工、情绪节奏、桃花 / 财运 / 事业专项、四阶段时间线、三个月相处计划与沟通话术例句，需要付费解锁。站点首页有完整的免费 / 深度对照表，可以先看清再决定。</p>
         </details>
         <details class="faq-item">
           <summary>付款后多久能拿到解锁码？</summary>
@@ -241,7 +319,9 @@
     <div class="modal-card">
       <button id="modalClose" class="modal-close" type="button" aria-label="关闭">×</button>
       <h3 class="modal-title">✨ 深度缘分解锁</h3>
-      <p class="modal-desc">每个配对都有<strong>专属解锁码</strong>，按月更新、不通用。<br>加站长微信 <b id="payWechat">aichishutiaodewo</b>，发送你们俩的出生年月日与时辰，即可领取属于你们的解锁码。</p>
+      <p class="modal-desc">每个配对都有<strong>专属解锁码</strong>，按月更新、不通用。<br>把结果页里的 <b>「本配对暗号」</b>（6 位字母数字）点「复制」发给站长微信 <b id="payWechat">aichishutiaodewo</b>，即可领取本配对专属解锁码。</p>
+
+      <div class="modal-generated">📖 你们的 14 段深度内容已生成完毕，输入解锁码即可阅读全文</div>
 
       <div class="unlock-input-row">
         <input type="text" id="unlockCode" placeholder="输入解锁码（如 AB3K9M2P）" autocomplete="off" />
@@ -252,23 +332,9 @@
     </div>
   </div>
 
-  <!-- 站长控制台（隐藏，需网址后加 ?op=yuan-admin-2026 打开） -->
-  <div id="ownerConsole" class="owner-console modal-mask" hidden>
-    <div class="modal-card oc-card">
-      <button id="ocClose" class="modal-close" type="button" aria-label="关闭">×</button>
-      <h3 class="modal-title">站长 · 解锁码生成器</h3>
-      <p class="modal-desc">让用户把网站上的「本配对暗号」复制发给你，粘贴到下面，即可生成<strong>当前月份专属解锁码</strong>。仅站长可见。</p>
-      <div class="oc-grid">
-        <label>用户配对暗号（用户在网站合盘后锁定面板里复制）<input type="text" id="ocToken" placeholder="如 A1B2C3" maxlength="8" autocomplete="off" /></label>
-      </div>
-      <button id="ocGen" class="calc-btn small" type="button">生成解锁码</button>
-      <div id="ocOut" class="oc-out" hidden></div>
-    </div>
-  </div>
-
   <script src="lib/lunar.js?v=2"></script>
   <script src="lib/html2canvas.min.js?v=2"></script>
-  <script src="js/bazi.js?v=3"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/bazi.js?v=4"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>
