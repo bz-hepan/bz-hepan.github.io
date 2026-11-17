@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbe4f0"/>
+      <stop offset="1" stop-color="#e9def9"/>
+    </linearGradient>
+    <linearGradient id="txt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7b3fbf"/>
+      <stop offset="1" stop-color="#e2558f"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg)" stroke="#c9a9e6" stroke-width="1.5"/>
+  <circle cx="32" cy="32" r="23" fill="none" stroke="#d9bcec" stroke-width="1" stroke-dasharray="2 3"/>
+  <text x="32" y="43" font-family="serif" font-size="34" font-weight="700" text-anchor="middle" fill="url(#txt)">缘</text>
+  <circle cx="14" cy="15" r="2.4" fill="#f4a8c8"/>
+  <circle cx="50" cy="49" r="2" fill="#c9a9e6"/>
+</svg>

@@ -7,6 +7,17 @@
   const B = window.BaziEngine;
   const $ = (id) => document.getElementById(id);
 
+  // ===== HTML 转义：任何用户输入拼进 innerHTML 前必须先过这一层，防 XSS =====
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[c]);
+  }
+  function safeName(el, fallback) {
+    const v = el && el.value ? el.value.trim() : '';
+    return escapeHtml(v || fallback || '');
+  }
+
   // ===== 联系配置 =====
   const PAY = { wechat: 'aichishutiaodewo', price: '9.9', priceOriginal: '19.9' };
 
@@ -240,8 +251,8 @@
   function renderWxChart(a, b) {
     const box = $('wxChart');
     if (!box) return;
-    const nameA = els.nameA.value.trim() || '命主 A';
-    const nameB = els.nameB.value.trim() || '命主 B';
+    const nameA = safeName(els.nameA, '命主 A');
+    const nameB = safeName(els.nameB, '命主 B');
     const wxs = ['木', '火', '土', '金', '水'];
     const rows = wxs.map(w => {
       const ca = a.elementCounts[w] || 0, cb = b.elementCounts[w] || 0;
@@ -274,8 +285,8 @@
   // ===== 个性化解读区（结果卡内） =====
   function buildPersonalInsight(a, b, res) {
     if (!els.insightBox) return; // 容错：元素不存在时跳过
-    const nameA = els.nameA.value.trim() || 'Ta';
-    const nameB = els.nameB.value.trim() || 'Ta';
+    const nameA = safeName(els.nameA, 'Ta');
+    const nameB = safeName(els.nameB, 'Ta');
     const d = res.details;
     const dims = [
       { key: 'zodiac',  ...d[0] },
@@ -566,11 +577,33 @@
     els.shareBtn.textContent = '📸 保存无水印高清图';
   }
 
+  // 按需加载 html2canvas：首屏不下载，点「保存分享图」时才拉取，省约 47KB gzip
+  function ensureHtml2Canvas() {
+    if (typeof html2canvas === 'function') return Promise.resolve();
+    if (window.__h2cPromise) return window.__h2cPromise;
+    window.__h2cPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'lib/html2canvas.min.js?v=2';
+      s.onload = () => resolve();
+      s.onerror = () => { window.__h2cPromise = null; reject(new Error('load failed')); };
+      document.head.appendChild(s);
+    });
+    return window.__h2cPromise;
+  }
+
   async function saveShare() {
-    if (typeof html2canvas !== 'function') { alert('分享组件未加载，请刷新页面重试'); return; }
     els.shareHint.hidden = false;
-    els.shareHint.textContent = '生成中…';
+    els.shareHint.textContent = '组件加载中…';
     els.shareBtn.disabled = true;
+    try {
+      await ensureHtml2Canvas();
+    } catch (e) {
+      alert('分享组件加载失败，请检查网络后重试');
+      els.shareBtn.disabled = false;
+      els.shareHint.hidden = true;
+      return;
+    }
+    els.shareHint.textContent = '生成中…';
     const node = els.result;
     let wm = null;
     if (!isPairUnlocked(currentSig)) {
@@ -636,8 +669,8 @@
       els.ratingStars.textContent = '★'.repeat(res.rating.stars) + '☆'.repeat(5 - res.rating.stars);
       els.summaryText.textContent = res.summary;
       buildPersonalInsight(pa, pb, res);
-      els.pillarA.innerHTML = buildPillarCard(pa, els.nameA.value.trim());
-      els.pillarB.innerHTML = buildPillarCard(pb, els.nameB.value.trim());
+      els.pillarA.innerHTML = buildPillarCard(pa, safeName(els.nameA, '命主'));
+      els.pillarB.innerHTML = buildPillarCard(pb, safeName(els.nameB, '命主'));
       renderWxChart(pa, pb);
       renderDimensions(res.details);
       buildAdvice(pa, pb, res.dimensions, res.total, els.relA.value);
