@@ -8,7 +8,7 @@
   const $ = (id) => document.getElementById(id);
 
   // ===== 联系配置 =====
-  const PAY = { wechat: 'aichishutiaodewo' };
+  const PAY = { wechat: 'aichishutiaodewo', price: '9.9', priceOriginal: '19.9' };
 
   // ===== 解锁码校验 =====
   // 只接受「配对暗号 + 当月/上月 + 盐」派生的 8 位专属码，
@@ -515,7 +515,7 @@
           <p class="deep-free-line">${res.summary} 完整报告约 ${wordCount} 字，按你们两人的四柱单独生成、每对不同；解锁后分享图还会去掉水印，可保存高清无遮挡版。</p>
           <div class="deep-pair-token">本配对暗号：<b id="pairToken">${token}</b>
             <button id="copyTokenBtn" class="token-copy-btn" type="button">📋 复制暗号</button>
-            <span class="deep-pair-note">点「复制暗号」发给站长微信 <b>${PAY.wechat}</b>，即可领取本配对专属解锁码（填码时只填解锁码，不用填暗号）</span>
+            <span class="deep-pair-note">点「复制暗号」发给站长微信 <b>${PAY.wechat}</b>，付款后即可领取本配对专属解锁码（首单 ¥${PAY.price}，原价 ¥${PAY.priceOriginal}；填码时只填 8 位解锁码，不用填暗号）</span>
           </div>
           <button id="unlockBtn" class="unlock-btn" type="button">🔓 获取专属解锁码 · 解锁完整报告</button>
           <p class="deep-cta-note">免费部分随时可看 · 解锁只是想看得更细一点 🌷</p>
@@ -534,6 +534,8 @@
 
   function openModal() {
     els.payWechat.textContent = PAY.wechat;
+    const priceEl = $('payPrice');
+    if (priceEl) priceEl.textContent = PAY.price;
     els.unlockMsg.hidden = true;
     els.unlockCode.value = '';
     els.unlockModal.hidden = false;
