@@ -462,6 +462,75 @@
     secs.forEach(s => { if (s.classList.contains('open')) setOpen(s, true); });
   }
 
+  // ===== 深度报告 · 古风图解（内联 SVG，零外部请求）=====
+  // 每张图为「矢量插画 + 古风图注」，按章节植入，让付费报告图文并茂。
+  const DEEP_ILLUS = {
+    // 同心缘起：两环相扣，中心莲花
+    origin: `<svg viewBox="0 0 340 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="两枚同心圆环交叠，中心开出一朵莲花">
+      <defs><linearGradient id="dioA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7a8c4"/><stop offset="1" stop-color="#b08bd6"/></linearGradient></defs>
+      <g fill="none"><circle cx="146" cy="62" r="38" stroke="url(#dioA)" stroke-width="2.2" opacity=".9"/><circle cx="194" cy="62" r="38" stroke="#d9b25a" stroke-width="2.2" opacity=".9"/></g>
+      <g transform="translate(170,62)">
+        <g fill="#f7a8c4" opacity=".82"><ellipse cy="-15" rx="6.5" ry="14"/><ellipse cy="-15" rx="6.5" ry="14" transform="rotate(60)"/><ellipse cy="-15" rx="6.5" ry="14" transform="rotate(120)"/><ellipse cy="-15" rx="6.5" ry="14" transform="rotate(180)"/><ellipse cy="-15" rx="6.5" ry="14" transform="rotate(240)"/><ellipse cy="-15" rx="6.5" ry="14" transform="rotate(300)"/></g>
+        <circle r="6.5" fill="#d9b25a"/><circle r="2.6" fill="#fff8e6"/>
+      </g>
+      <g fill="#d9b25a" opacity=".7"><circle cx="96" cy="40" r="2"/><circle cx="244" cy="86" r="2.4"/><circle cx="262" cy="38" r="1.6"/></g>
+    </svg><figcaption>两环相扣，是命里写好的相逢 · 莲花为证</figcaption>`,
+    // 角色分工：一给一接，双人循环
+    roles: `<svg viewBox="0 0 340 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="两个人形以循环箭头彼此呼应，象征一给一接">
+      <defs><marker id="dioArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#b08bd6"/></marker></defs>
+      <g fill="none" stroke="#b08bd6" stroke-width="2"><path d="M132 40 Q170 16 208 40" marker-end="url(#dioArrow)"/><path d="M208 92 Q170 116 132 92" marker-end="url(#dioArrow)"/></g>
+      <circle cx="106" cy="66" r="24" fill="rgba(247,168,196,.35)" stroke="#e2558f" stroke-width="2"/><circle cx="234" cy="66" r="24" fill="rgba(217,178,90,.3)" stroke="#d9b25a" stroke-width="2"/>
+      <text x="106" y="72" text-anchor="middle" font-size="20" fill="#e2558f" font-family="serif">给</text>
+      <text x="234" y="72" text-anchor="middle" font-size="20" fill="#b8862f" font-family="serif">接</text>
+      <text x="170" y="70" text-anchor="middle" font-size="14" fill="#7c5bbf" font-family="serif">相济</text>
+    </svg><figcaption>一给一接，如日月相济 · 能量在彼此间流动</figcaption>`,
+    // 情绪节奏：两条交织波形，一阴一阳
+    rhythm: `<svg viewBox="0 0 340 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="两条柔和波形彼此交织，象征一阴一阳的相处节奏">
+      <path d="M20 66 Q60 26 100 66 T180 66 T260 66 T320 66" fill="none" stroke="#e2558f" stroke-width="2.4" opacity=".85"/>
+      <path d="M20 66 Q60 106 100 66 T180 66 T260 66 T320 66" fill="none" stroke="#7c5bbf" stroke-width="2.4" opacity=".85"/>
+      <g fill="#fff" stroke="#d9b25a" stroke-width="1.6"><circle cx="100" cy="66" r="4"/><circle cx="180" cy="66" r="4"/><circle cx="260" cy="66" r="4"/></g>
+      <text x="170" y="26" text-anchor="middle" font-size="12" fill="#e2558f" font-family="serif">阳 · 先热</text>
+      <text x="170" y="118" text-anchor="middle" font-size="12" fill="#7c5bbf" font-family="serif">阴 · 后暖</text>
+    </svg><figcaption>一阴一阳，起伏相和 · 给慢的那一方留半拍</figcaption>`,
+    // 五行相生：环形五点，相生有序
+    wuxing: `<svg viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="木火土金水五个元素环形相生">
+      <path d="M170 28 L214 60 L197 110 L143 110 L126 60 Z" fill="none" stroke="#d9b25a" stroke-width="1.6" opacity=".65" stroke-dasharray="5 4"/>
+      <g font-family="serif" font-size="15" text-anchor="middle" fill="#fff">
+        <circle cx="170" cy="28" r="15" fill="#3fa86a"/><text x="170" y="33">木</text>
+        <circle cx="214" cy="60" r="15" fill="#e2554f"/><text x="214" y="65">火</text>
+        <circle cx="197" cy="110" r="15" fill="#c8923a"/><text x="197" y="115">土</text>
+        <circle cx="143" cy="110" r="15" fill="#a9a9b8"/><text x="143" y="115">金</text>
+        <circle cx="126" cy="60" r="15" fill="#3a7bd5"/><text x="126" y="65">水</text>
+      </g>
+      <text x="292" y="70" text-anchor="middle" font-size="12" fill="#7c5bbf" font-family="serif">相生</text>
+      <text x="292" y="88" text-anchor="middle" font-size="12" fill="#7c5bbf" font-family="serif">相依</text>
+    </svg><figcaption>木火土金水，相生相依 · 缺则可补，贵在流动</figcaption>`,
+    // 流年卷轴：三载光阴
+    fortune: `<svg viewBox="0 0 340 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="三卷展开的年轴，象征未来三年">
+      <g>
+        <rect x="34" y="44" width="80" height="46" rx="8" fill="rgba(247,168,196,.28)" stroke="#e2558f" stroke-width="1.6"/>
+        <rect x="130" y="38" width="80" height="52" rx="8" fill="rgba(217,178,90,.26)" stroke="#d9b25a" stroke-width="1.8"/>
+        <rect x="226" y="44" width="80" height="46" rx="8" fill="rgba(176,139,214,.28)" stroke="#7c5bbf" stroke-width="1.6"/>
+      </g>
+      <path d="M114 67 H130 M210 67 H226" stroke="#b08bd6" stroke-width="1.6" stroke-dasharray="4 4"/>
+      <g font-family="serif" font-size="15" fill="#7c5bbf" text-anchor="middle"><text x="74" y="73">壹</text><text x="170" y="70">贰</text><text x="266" y="73">叁</text></g>
+      <g fill="#d9b25a"><circle cx="74" cy="36" r="3"/><circle cx="170" cy="30" r="3.6"/><circle cx="266" cy="36" r="3"/></g>
+    </svg><figcaption>三载光阴，各有其时 · 顺势而为，逐年向好</figcaption>`,
+    // 开运守护：幸运色环 + 守护星
+    lucky: `<svg viewBox="0 0 340 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="四色幸运光环环绕一颗守护星">
+      <g fill="none" stroke-width="3" opacity=".85"><circle cx="170" cy="66" r="42" stroke="#3fa86a" stroke-dasharray="66 200" transform="rotate(-90 170 66)"/><circle cx="170" cy="66" r="42" stroke="#e2554f" stroke-dasharray="66 200" transform="rotate(0 170 66)"/><circle cx="170" cy="66" r="42" stroke="#c8923a" stroke-dasharray="66 200" transform="rotate(90 170 66)"/><circle cx="170" cy="66" r="42" stroke="#3a7bd5" stroke-dasharray="66 200" transform="rotate(180 170 66)"/></g>
+      <path d="M170 44 l5.6 15.4 L192 65 l-16.4 5.6 L170 86 l-5.6-15.4 L148 65 l16.4-5.6 Z" fill="#d9b25a" opacity=".92"/>
+      <circle cx="170" cy="65" r="4.5" fill="#fff8e6"/>
+    </svg><figcaption>幸色成环，吉物护佑 · 把喜欢的气息带在身边</figcaption>`
+  };
+  // 未解锁引导区：同心锁 + 微光
+  const TEASER_ILLUS = `<svg viewBox="0 0 340 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="一枚古风同心锁，周围有微光">
+    <g fill="none" stroke="#d9b25a" stroke-width="2" opacity=".75"><path d="M126 62 a44 44 0 0 1 88 0"/><rect x="140" y="62" width="60" height="48" rx="10" fill="rgba(217,178,90,.16)" stroke="#d9b25a"/></g>
+    <circle cx="170" cy="86" r="7" fill="none" stroke="#e2558f" stroke-width="2"/><circle cx="170" cy="86" r="2.4" fill="#e2558f"/>
+    <g fill="#f7a8c4" opacity=".8"><circle cx="106" cy="44" r="2.2"/><circle cx="234" cy="50" r="2.6"/><circle cx="98" cy="96" r="1.8"/><circle cx="244" cy="104" r="2"/></g>
+    <text x="170" y="28" text-anchor="middle" font-size="13" fill="#7c5bbf" font-family="serif">解锁之后 · 尽是为你而写的字</text>
+  </svg>`;
+
   function renderDeepZone(a, b, res) {
     if (isPairUnlocked(currentSig)) {
       const d = B.deepReport(a, b, res);
@@ -500,6 +569,7 @@
         { icon: '💌', title: '写给你们', body: `<p class="du-para">${r.closing}</p>` }
       ];
 
+      const ILLUS_BY_SEC = { 0: 'origin', 1: 'roles', 2: 'rhythm', 3: 'wuxing', 9: 'fortune', 12: 'lucky' };
       const tocHtml = sections.map((s, i) => `<button type="button" class="du-toc-item" data-sec="${i}"><span class="du-toc-n">${String(i + 1).padStart(2, '0')}</span><span class="du-toc-ic">${s.icon}</span><span class="du-toc-t">${s.title}</span></button>`).join('');
       const secHtml = sections.map((s, i) => `
         <section class="du-sec${i < 2 ? ' open' : ''}" id="du-sec-${i}" data-sec="${i}">
@@ -509,7 +579,7 @@
             <span class="du-sec-title">${s.title}</span>
             <span class="du-sec-arrow">⌄</span>
           </button>
-          <div class="du-sec-body"><div class="du-sec-inner">${s.body}</div></div>
+          <div class="du-sec-body"><div class="du-sec-inner">${ILLUS_BY_SEC[i] ? `<figure class="du-fig">${DEEP_ILLUS[ILLUS_BY_SEC[i]]}</figure>` : ''}${s.body}</div></div>
         </section>`).join('');
 
       els.deepZone.innerHTML = `
@@ -585,6 +655,7 @@
             <ul>${TOC.map((t, i) => `<li><span class="toc-n">${String(i + 1).padStart(2, '0')}</span><span class="toc-t">${t}</span><span class="toc-lock">🔒</span></li>`).join('')}</ul>
           </div>
 
+          <figure class="du-fig du-fig-teaser">${TEASER_ILLUS}</figure>
           <div class="deep-preview">
             <div class="deep-preview-head">👀 先试读一段 · 缘分深度长文（节选）</div>
             <div class="deep-preview-body">${r.deepParas[0]} ${r.deepParas[1].slice(0, 52)}…</div>

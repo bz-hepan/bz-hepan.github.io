@@ -484,6 +484,14 @@ input:focus, select:focus {
 .du-signature { background: linear-gradient(135deg, rgba(124, 91, 191, 0.08), rgba(226, 85, 143, 0.08)); border: 1px solid var(--card-line); }
 .du-sig-text { font-family: var(--font-cn); font-size: 15.5px; color: var(--purple-deep); line-height: 2; letter-spacing: 1px; text-align: center; padding: 6px 4px; }
 
+/* ===== 深度报告 · 古风图解 ===== */
+.du-fig { margin: 0 0 16px; text-align: center; background: linear-gradient(135deg, rgba(176, 139, 214, 0.07), rgba(217, 178, 90, 0.08)); border: 1px solid var(--card-line); border-radius: var(--radius-sm); padding: 12px 14px 10px; }
+.du-fig svg { display: block; width: 100%; max-width: 340px; height: auto; margin: 0 auto; }
+.du-fig figcaption { font-family: var(--font-cn); font-size: 12.5px; color: var(--purple-deep); letter-spacing: 1px; margin-top: 4px; line-height: 1.6; }
+/* 未解锁引导区插图 */
+.du-fig-teaser { max-width: 620px; margin: 0 auto 16px; background: linear-gradient(135deg, rgba(247, 168, 196, 0.12), rgba(176, 139, 214, 0.1)); }
+.du-fig-teaser svg { max-width: 340px; }
+
 /* ===== 解锁弹窗 ===== */
 .modal-mask { position: fixed; inset: 0; z-index: 50; background: rgba(74, 59, 82, 0.45); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .modal-card { position: relative; width: 100%; max-width: 420px; max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; background: rgba(255, 255, 255, 0.97); border: 1px solid var(--card-line); border-radius: var(--radius); padding: 28px 24px 22px; box-shadow: 0 20px 60px rgba(124, 91, 191, 0.32); animation: fadeUp 0.3s ease; }
