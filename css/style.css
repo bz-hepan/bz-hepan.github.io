@@ -863,4 +863,81 @@ input:focus, select:focus {
 }
 @media (prefers-reduced-motion: reduce) {
   .deep-badge, .modal-card { animation: none; }
+  .petal-layer, .petal-layer i, .ritual-ring, .ritual-glyph { animation: none !important; }
+}
+
+/* ============================================================
+   仪式感：飘落花瓣 + 合盘过场（纯 CSS，无外部图片）
+   ============================================================ */
+.petal-layer { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.petal-layer i {
+  position: absolute; top: -8%;
+  width: 12px; height: 12px;
+  background: radial-gradient(circle at 30% 30%, #ffd0e3, #f4a8c8 70%, #e882b0);
+  border-radius: 12px 1px 12px 1px;
+  opacity: 0.5;
+  animation: petalFall linear infinite;
+}
+.petal-layer i:nth-child(1)  { left: 6%;  animation-duration: 13s; animation-delay: -2s;  transform: scale(.7); }
+.petal-layer i:nth-child(2)  { left: 18%; animation-duration: 17s; animation-delay: -8s;  transform: scale(1); }
+.petal-layer i:nth-child(3)  { left: 29%; animation-duration: 15s; animation-delay: -4s;  transform: scale(.55); }
+.petal-layer i:nth-child(4)  { left: 40%; animation-duration: 20s; animation-delay: -11s; transform: scale(.85); }
+.petal-layer i:nth-child(5)  { left: 52%; animation-duration: 14s; animation-delay: -6s;  transform: scale(.65); }
+.petal-layer i:nth-child(6)  { left: 63%; animation-duration: 18s; animation-delay: -1s;  transform: scale(1.05); }
+.petal-layer i:nth-child(7)  { left: 74%; animation-duration: 16s; animation-delay: -9s;  transform: scale(.6); }
+.petal-layer i:nth-child(8)  { left: 85%; animation-duration: 19s; animation-delay: -5s;  transform: scale(.9); }
+.petal-layer i:nth-child(9)  { left: 93%; animation-duration: 15s; animation-delay: -13s; transform: scale(.7); }
+.petal-layer i:nth-child(10) { left: 12%; animation-duration: 22s; animation-delay: -16s; transform: scale(.5); }
+.petal-layer i:nth-child(11) { left: 58%; animation-duration: 21s; animation-delay: -18s; transform: scale(.75); }
+.petal-layer i:nth-child(12) { left: 81%; animation-duration: 17s; animation-delay: -7s;  transform: scale(.6); }
+@keyframes petalFall {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg);   opacity: 0; }
+  10%  { opacity: 0.55; }
+  90%  { opacity: 0.4; }
+  100% { transform: translate3d(60px, 110vh, 0) rotate(420deg); opacity: 0; }
+}
+
+/* 合盘过场遮罩 */
+.ritual-mask {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 42%, rgba(255,250,253,.94) 0%, rgba(243,233,250,.96) 55%, rgba(230,238,250,.97) 100%);
+  backdrop-filter: blur(6px);
+  transition: opacity .32s ease;
+}
+.ritual-mask.ritual-out { opacity: 0; }
+.ritual-inner { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
+.ritual-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px dashed rgba(176,139,214,.55);
+  border-top-color: var(--pink-deep);
+  border-right-color: var(--gold);
+  animation: ritualSpin 2.4s linear infinite;
+}
+.ritual-ring::before, .ritual-ring::after {
+  content: ''; position: absolute; border-radius: 50%;
+}
+.ritual-ring::before { inset: 14px; border: 1px solid rgba(226,85,143,.28); border-left-color: var(--pink-deep); animation: ritualSpin 1.6s linear infinite reverse; }
+.ritual-ring::after  { inset: 30px; border: 1px dotted rgba(217,178,90,.4); animation: ritualSpin 3s linear infinite; }
+.ritual-glyph {
+  position: relative; z-index: 1;
+  font-family: var(--font-cn); font-size: 76px; font-weight: 700;
+  background: linear-gradient(135deg, var(--purple-deep), var(--pink-deep), var(--gold));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: ritualPulse 1.2s ease-in-out infinite;
+}
+.ritual-text {
+  position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+  white-space: nowrap; font-size: 14px; letter-spacing: 2px; color: var(--ink-soft);
+  font-family: var(--font-cn);
+}
+@keyframes ritualSpin { to { transform: rotate(360deg); } }
+@keyframes ritualPulse { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
+
+/* 小屏适配 */
+@media (max-width: 640px) {
+  .petal-layer i { width: 9px; height: 9px; }
+  .ritual-inner { width: 170px; height: 170px; }
+  .ritual-glyph { font-size: 60px; }
+  .ritual-text { font-size: 12.5px; }
 }

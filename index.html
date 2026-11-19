@@ -6,19 +6,40 @@
   <title>双女八字合盘 · 缘分之轮</title>
   <meta name="description" content="双女八字合盘：免费看缘分分、四柱排盘、五行分布、相处锦囊与诗词；深度报告按两人八字专属生成。" />
   <meta name="theme-color" content="#f7eaf5" />
+  <!-- PWA：可添加到主屏幕，像 App 一样全屏打开 -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="缘分之轮" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="双女八字合盘 · 缘分之轮" />
   <meta property="og:description" content="合不合得来，八字里的缘分与相处。免费合盘，专属深度报告。" />
   <meta property="og:image" content="https://bz-hepan.github.io/assets/og-image.png" />
   <meta property="og:url" content="https://bz-hepan.github.io/" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-  <link rel="stylesheet" href="css/style.css?v=8" />
+  <link rel="stylesheet" href="css/style.css?v=9" />
 </head>
 <body>
   <div class="bg-orbs">
     <span class="arb1"></span>
     <span class="arb2"></span>
     <span class="arb3"></span>
+  </div>
+
+  <!-- 飘落花瓣（纯 CSS，不挡操作） -->
+  <div class="petal-layer" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+
+  <!-- 合盘仪式过场 -->
+  <div id="ritual" class="ritual-mask" hidden aria-hidden="true">
+    <div class="ritual-inner">
+      <div class="ritual-ring"></div>
+      <div class="ritual-glyph">缘</div>
+      <div class="ritual-text">正在推演你们的缘分…</div>
+    </div>
   </div>
 
   <header class="site-header">
@@ -358,6 +379,6 @@
 
   <script src="lib/lunar.js?v=2"></script>
   <script src="js/bazi.js?v=4"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>

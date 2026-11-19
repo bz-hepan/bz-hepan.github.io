@@ -648,6 +648,28 @@
     }, 22);
   }
 
+  // 合盘仪式过场：先算好数据，播完动画再渲染，算法不受影响
+  function playRitual(after) {
+    const mask = $('ritual');
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!mask || reduce) { after(); return; }
+    mask.hidden = false;
+    mask.setAttribute('aria-hidden', 'false');
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      mask.classList.add('ritual-out');
+      setTimeout(() => {
+        mask.hidden = true;
+        mask.setAttribute('aria-hidden', 'true');
+        mask.classList.remove('ritual-out');
+      }, 320);
+      after();
+    };
+    setTimeout(finish, 1150);
+  }
+
   function doCalc() {
     clearError();
     try {
@@ -660,23 +682,25 @@
       currentSig = pairSig(pa, pb);
       lastCalc = { pa, pb, res };
 
-      els.result.hidden = false;
-      els.shareBtn.hidden = false;
-      els.resetBtn.hidden = false;
-      animateScore(res.total);
-      els.ratingLevel.textContent = res.rating.level;
-      els.ratingLevel.style.color = res.rating.color;
-      els.ratingStars.textContent = '★'.repeat(res.rating.stars) + '☆'.repeat(5 - res.rating.stars);
-      els.summaryText.textContent = res.summary;
-      buildPersonalInsight(pa, pb, res);
-      els.pillarA.innerHTML = buildPillarCard(pa, safeName(els.nameA, '命主'));
-      els.pillarB.innerHTML = buildPillarCard(pb, safeName(els.nameB, '命主'));
-      renderWxChart(pa, pb);
-      renderDimensions(res.details);
-      buildAdvice(pa, pb, res.dimensions, res.total, els.relA.value);
-      renderDeepZone(pa, pb, res);
-      els.shareBtn.textContent = isPairUnlocked(currentSig) ? '📸 保存无水印高清图' : '📸 保存分享图（体验版带水印）';
-      els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      playRitual(() => {
+        els.result.hidden = false;
+        els.shareBtn.hidden = false;
+        els.resetBtn.hidden = false;
+        animateScore(res.total);
+        els.ratingLevel.textContent = res.rating.level;
+        els.ratingLevel.style.color = res.rating.color;
+        els.ratingStars.textContent = '★'.repeat(res.rating.stars) + '☆'.repeat(5 - res.rating.stars);
+        els.summaryText.textContent = res.summary;
+        buildPersonalInsight(pa, pb, res);
+        els.pillarA.innerHTML = buildPillarCard(pa, safeName(els.nameA, '命主'));
+        els.pillarB.innerHTML = buildPillarCard(pb, safeName(els.nameB, '命主'));
+        renderWxChart(pa, pb);
+        renderDimensions(res.details);
+        buildAdvice(pa, pb, res.dimensions, res.total, els.relA.value);
+        renderDeepZone(pa, pb, res);
+        els.shareBtn.textContent = isPairUnlocked(currentSig) ? '📸 保存无水印高清图' : '📸 保存分享图（体验版带水印）';
+        els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     } catch (e) {
       showError(e.message || '合盘出错，请检查输入。');
     }
@@ -823,4 +847,11 @@
   els.modalClose.addEventListener('click', closeModal);
   els.unlockModal.addEventListener('click', (e) => { if (e.target === els.unlockModal) closeModal(); });
   els.unlockCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmUnlock(); });
+
+  // ===== PWA：注册 Service Worker（仅 https / localhost 生效，file:// 下静默跳过）=====
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 })();

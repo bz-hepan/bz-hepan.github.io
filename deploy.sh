@@ -16,7 +16,7 @@ echo "==> 当前改动"
 git status --short
 
 echo "==> 暂存站点核心文件（显式列表，避免漏文件 / 误提交杂物）"
-git add .gitignore index.html css/style.css js/app.js js/bazi.js lib/lunar.js lib/html2canvas.min.js assets/ deploy.sh .github/workflows/deploy.yml 部署步骤.md
+git add .gitignore index.html css/style.css js/app.js js/bazi.js lib/lunar.js lib/html2canvas.min.js assets/ manifest.webmanifest sw.js deploy.sh .github/workflows/deploy.yml 部署步骤.md
 
 # 没有待提交内容就直接结束，不报错
 if git diff --cached --quiet; then

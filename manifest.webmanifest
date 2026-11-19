@@ -1,0 +1,17 @@
+{
+  "name": "双女八字合盘 · 缘分之轮",
+  "short_name": "缘分之轮",
+  "description": "合不合得来，八字里的缘分与相处。免费合盘，专属深度报告。",
+  "start_url": "./?utm_source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6eef9",
+  "theme_color": "#f7eaf5",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
