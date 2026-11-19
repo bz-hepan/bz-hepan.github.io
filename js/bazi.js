@@ -542,6 +542,80 @@
   }
 
   // ============================================================
+  // 未来三年流年时间轴（付费内容）
+  // 依据：流年干支五行 + 双方喜用 + 流年地支与各自日支的刑冲合害。
+  // 只给到「年」的趋势主题与相处建议，不预测具体事件；纯娱乐参考。
+  // ============================================================
+  const FORTUNE_THEME = {
+    木: { word: '生长 · 规划', line: '木主生发，这一年的关系关键词是「一起长大」——适合做长远打算、共同养成一个习惯，把关系往更扎实的方向推。' },
+    火: { word: '热烈 · 表达', line: '火主明亮，这一年心动感与表达欲都被点亮——适合旅行、约会、把喜欢说出口，感情容易升温。' },
+    土: { word: '稳定 · 落地', line: '土主承载，这一年的主题是「落进生活」——适合谈些现实议题（同居、见面家人、共同储蓄），把浪漫过成日常。' },
+    金: { word: '收敛 · 决断', line: '金主决断，这一年适合把关系定下来、把模糊变清晰——承诺、边界，与「我们到底是什么」的答案容易浮现。' },
+    水: { word: '流动 · 沟通', line: '水主流通，这一年贵在「把话说开」——深度沟通、情绪磨合、化解误会，柔性地把关系带顺。' }
+  };
+
+  // 流年地支相对某人日支的关系提示
+  function zhiRelation(liunianZhi, dayZhi) {
+    if (liunianZhi === dayZhi) return '流年与日支同气，情绪和关系都容易被放大——好事更甜，小事也别钻牛角尖';
+    if (isLiuChong(liunianZhi, dayZhi)) return '流年冲动日支，生活里易有变动或情绪起伏，重大决定多留一个缓冲';
+    if (isLiuHe(liunianZhi, dayZhi)) return '流年六合日支，人缘与感情都有推动，适合主动靠近';
+    if (isLiuPo(liunianZhi, dayZhi)) return '流年与日支相破，关系里易有小的消耗，避免过度解读';
+    if (isLiuHai(liunianZhi, dayZhi)) return '流年与日支相害，留意口舌误会，把话讲明白大多能化解';
+    if (isSanXing(liunianZhi, dayZhi)) return '流年与日支相刑，像一次压力测试，耐心比聪明更管用';
+    if (inSameSanHe(liunianZhi, dayZhi)) return '流年与日支半合，暗中有助力，顺势而为更顺';
+    return '';
+  }
+
+  function fortuneYears(a, b, pa, pb) {
+    const thisYear = new Date().getFullYear();
+    const aDayZhi = a.pillars[2].zhi;
+    const bDayZhi = b.pillars[2].zhi;
+    const list = [];
+    for (let i = 0; i < 3; i++) {
+      const year = thisYear + i;
+      const gan = GAN[((year - 4) % 10 + 10) % 10];
+      const zhi = ZHI[((year - 4) % 12 + 12) % 12];
+      const ganWX = GAN_WUXING[gan];
+      const zhiWX = ZHI_WUXING[zhi];
+      const theme = FORTUNE_THEME[ganWX];
+
+      const aFav = pa.xi.includes(ganWX) || pa.xi.includes(zhiWX);
+      const bFav = pb.xi.includes(ganWX) || pb.xi.includes(zhiWX);
+      const aNote = zhiRelation(zhi, aDayZhi);
+      const bNote = zhiRelation(zhi, bDayZhi);
+      const notes = [];
+      if (aNote) notes.push(`${a.zodiac}方：${aNote}`);
+      if (bNote) notes.push(`${b.zodiac}方：${bNote}`);
+
+      let level, levelText, relation;
+      if (aFav && bFav) {
+        level = '顺遂'; levelText = '双喜顺势';
+        relation = '流年五行同时补到两个人的喜用，是难得的「一起变好」之年——想推进的关系大事，今年做最省力。';
+      } else if (aFav || bFav) {
+        const favWho = aFav ? a.zodiac : b.zodiac;
+        const calmWho = aFav ? b.zodiac : a.zodiac;
+        level = '平稳'; levelText = '一暖一缓';
+        relation = `这一年${favWho}方更顺势、状态更亮，${calmWho}方偏平缓。顺的一方主动带动，缓的一方安心接住，节奏就不容易错开。`;
+      } else {
+        level = '需经营'; levelText = '沉淀守成';
+        relation = '流年五行没有直接补到两人的喜用，属于「慢慢养」的一年。别急着推进大事，把日常过稳、把情绪照顾好，就是最好的经营。';
+      }
+
+      let advice;
+      if (level === '顺遂') advice = '顺势的年，适合把想法落到具体计划：一次旅行、一个新家、一次郑重其事的自我介绍。';
+      else if (level === '需经营') advice = '守成的年，少一点考验、多一点确定感——固定的联系节奏和说到做到，比轰轰烈烈更养关系。';
+      else advice = '一快一慢的年，先把「忙的时候怎么报备」说清楚，能省掉大半猜测。';
+
+      list.push({
+        year, ganzhi: gan + zhi, zodiac: ZHI_ANIMAL[zhi], wx: ganWX,
+        theme: theme.word, themeLine: theme.line,
+        level, levelText, relation, notes, advice, aFav, bFav
+      });
+    }
+    return list;
+  }
+
+  // ============================================================
   // 深度报告 · 富文本扩展
   // 不改动 deepReport 原有字段与算法，只附加更详尽的分段长文、
   // 专项解读、角色分工、情绪节奏、相处计划与可直接照着说的话术。
@@ -710,7 +784,8 @@
       deepParas, taohuaRich, wealthRich, careerRich, tuneRich,
       roles, rhythm, plan, tabooRich, scripts,
       luckyAvoid, keywordsRich, closing,
-      strongest, weakest, missingWX
+      strongest, weakest, missingWX,
+      fortune: fortuneYears(a, b, pa, pb)
     };
   }
 

@@ -941,3 +941,52 @@ input:focus, select:focus {
   .ritual-glyph { font-size: 60px; }
   .ritual-text { font-size: 12.5px; }
 }
+
+/* ===== 未来三年流年时间轴 ===== */
+.du-fortune-intro { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 2px 0 14px; }
+.du-fortune-list { display: flex; flex-direction: column; gap: 14px; }
+.du-fortune-item {
+  position: relative; padding: 16px 18px 15px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid var(--card-line);
+  border-left: 4px solid var(--purple-deep);
+  border-radius: var(--radius-sm);
+}
+.du-fortune-item.lv-good { border-left-color: var(--pink-deep); }
+.du-fortune-item.lv-care { border-left-color: var(--gold); }
+.fy-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fy-year {
+  font-family: var(--font-cn); font-size: 22px; font-weight: 700; color: var(--purple-deep);
+  letter-spacing: 1px;
+}
+.fy-gz { font-size: 13px; color: var(--ink-soft); }
+.fy-badge {
+  margin-left: auto; font-size: 11.5px; color: #fff; padding: 3px 11px; border-radius: 20px;
+  background: linear-gradient(135deg, #9b6fd0, #7c5bbf); white-space: nowrap;
+}
+.lv-good .fy-badge { background: linear-gradient(135deg, #e86aa6, #e2558f); }
+.lv-care .fy-badge { background: linear-gradient(135deg, #e0b45f, #c99a3f); }
+.fy-theme {
+  font-family: var(--font-cn); font-size: 15px; color: var(--pink-deep);
+  margin-top: 8px; font-weight: 700;
+}
+.fy-line, .fy-relation { font-size: 12.8px; color: var(--ink); line-height: 1.72; margin-top: 5px; }
+.fy-relation { color: #6c5a76; }
+.fy-notes { margin-top: 9px; display: flex; flex-direction: column; gap: 4px; }
+.fy-notes span {
+  font-size: 12px; color: var(--purple-deep); background: rgba(180, 140, 210, 0.1);
+  border-radius: 8px; padding: 5px 10px; line-height: 1.55;
+}
+.fy-advice {
+  font-size: 12.3px; color: #8a6a3a; background: rgba(217, 178, 90, 0.12);
+  border-radius: 8px; padding: 7px 11px; margin-top: 10px; line-height: 1.6;
+}
+.du-fortune-disclaimer {
+  font-size: 11px; color: var(--ink-soft); opacity: 0.82; line-height: 1.65;
+  margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--card-line);
+}
+@media (max-width: 640px) {
+  .du-fortune-item { padding: 14px 14px 13px; }
+  .fy-year { font-size: 20px; }
+  .fy-line, .fy-relation { font-size: 12.5px; }
+}

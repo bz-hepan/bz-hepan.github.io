@@ -386,8 +386,8 @@
     if (isPairUnlocked(currentSig)) {
       const d = B.deepReport(a, b, res);
       const r = d.rich;
-      const nameA = els.nameA.value.trim() || '命主 A';
-      const nameB = els.nameB.value.trim() || '命主 B';
+      const nameA = safeName(els.nameA, '命主 A');
+      const nameB = safeName(els.nameB, '命主 B');
       els.deepZone.innerHTML = `
         <div class="deep-unlocked">
           <div class="du-head">🌟 深度缘分报告（已解锁）</div>
@@ -443,6 +443,26 @@
               ${d.timeline.map(t => `<div class="du-tl-item"><div class="stage">${t.stage}</div><div class="tip">${t.tip}</div></div>`).join('')}
             </div>
           </div>
+          <div class="du-block du-fortune">
+            <h4>✨ 未来三年流年时间轴</h4>
+            <p class="du-fortune-intro">按两人的喜用五行与流年干支推演，逐年给出趋势主题与相处建议。愿你们趋吉避凶，把每一年都过成想要的样子 🌷</p>
+            <div class="du-fortune-list">
+              ${r.fortune.map(y => `
+                <div class="du-fortune-item lv-${y.level === '顺遂' ? 'good' : y.level === '需经营' ? 'care' : 'mid'}">
+                  <div class="fy-head">
+                    <span class="fy-year">${y.year}</span>
+                    <span class="fy-gz">${y.ganzhi}年 · ${y.zodiac}</span>
+                    <span class="fy-badge">${y.levelText}</span>
+                  </div>
+                  <div class="fy-theme">${y.theme}</div>
+                  <p class="fy-line">${y.themeLine}</p>
+                  <p class="fy-relation">${y.relation}</p>
+                  ${y.notes.length ? `<div class="fy-notes">${y.notes.map(n => `<span>${n}</span>`).join('')}</div>` : ''}
+                  <p class="fy-advice">💡 ${y.advice}</p>
+                </div>`).join('')}
+            </div>
+            <p class="du-fortune-disclaimer">※ 流年推演源自传统命理五行生克，用于增加相处时的心意与仪式感，仅供娱乐参考，并非对具体事件的预测或保证。日子怎么过，终究由你们自己决定。</p>
+          </div>
           <div class="du-block">
             <h4>🪴 未来三个月相处小计划</h4>
             <div class="du-plan">
@@ -497,6 +517,7 @@
         '事业协作专项',
         '相处禁忌清单',
         '关系发展时间线 · 四阶段',
+        '✨ 未来三年流年时间轴 · 逐年推演',
         '未来三个月相处小计划',
         '缘分关键词 + 专属开运守护',
         '沟通风格与化解话术（含例句）',
@@ -505,6 +526,7 @@
       const wordCount = (r.deepParas.join('') + r.roles.a + r.roles.b + r.roles.together
         + r.rhythm.a + r.rhythm.b + r.rhythm.together + r.tuneRich
         + r.taohuaRich + r.wealthRich + r.careerRich + r.tabooRich.join('')
+        + r.fortune.map(y => y.themeLine + y.relation + y.notes.join('') + y.advice).join('')
         + r.plan.map(p => p.tip).join('') + r.scripts.join('') + r.closing).length;
       els.deepZone.innerHTML = `
         <div class="deep-locked">
