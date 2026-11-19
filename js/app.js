@@ -438,25 +438,7 @@
       anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    // 阅读进度条：基于深度区滚动位置
-    const progress = $('duProgressBar');
-    const container = zone.closest('.deep-unlocked') || zone;
-    if (progress) {
-      let ticking = false;
-      window.addEventListener('scroll', () => {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(() => {
-          const rect = container.getBoundingClientRect();
-          const total = rect.height - window.innerHeight;
-          const scrolled = -rect.top;
-          const pct = total > 0 ? Math.max(0, Math.min(1, scrolled / total)) : 0;
-          progress.style.width = (pct * 100).toFixed(1) + '%';
-          if (backTop) backTop.classList.toggle('visible', scrolled > 300);
-          ticking = false;
-        });
-      }, { passive: true });
-    }
+    // 阅读进度与返回顶部显隐已迁移到 mountReadingBar（顶部固定阅读条）
 
     // 初始化目录高亮：默认展开的章节
     secs.forEach(s => { if (s.classList.contains('open')) setOpen(s, true); });
@@ -531,7 +513,95 @@
     <text x="170" y="28" text-anchor="middle" font-size="13" fill="#7c5bbf" font-family="serif">解锁之后 · 尽是为你而写的字</text>
   </svg>`;
 
+  // 顶部固定阅读条：进入深度报告区滑出，全程可见；显示进度百分比与当前章节
+  function mountReadingBar() {
+    const zone = $('duSections');
+    const container = zone && (zone.closest('.deep-unlocked') || zone);
+    if (!container) return;
+    const secs = Array.prototype.slice.call(zone.querySelectorAll('.du-sec'));
+    if (!secs.length) return;
+    const bar = document.createElement('div');
+    bar.className = 'du-readingbar';
+    bar.id = 'duTopBar';
+    bar.setAttribute('aria-hidden', 'true');
+    bar.innerHTML = `
+      <div class="du-rb-inner">
+        <span class="du-rb-mark">🌸</span>
+        <div class="du-rb-meta">
+          <span class="du-rb-chapter" id="duRbChapter">深度缘分报告</span>
+          <span class="du-rb-sub" id="duRbSub">正在阅读 · 共 ${secs.length} 章</span>
+        </div>
+        <span class="du-rb-pct" id="duRbPct">0%</span>
+      </div>
+      <div class="du-rb-track"><div class="du-rb-fill" id="duRbFill"></div></div>`;
+    document.body.appendChild(bar);
+
+    const fill = $('duRbFill');
+    const pctEl = $('duRbPct');
+    const chapterEl = $('duRbChapter');
+    const subEl = $('duRbSub');
+    let active = false, ticking = false;
+
+    function updateProgress() {
+      const rect = container.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // 进度：从容器顶部到达视口顶部算 0%，到容器底部到达视口底部算 100%
+      const total = rect.height - vh;
+      const scrolled = -rect.top;
+      const pct = total > 0 ? Math.max(0, Math.min(1, scrolled / total)) : (rect.top < 0 ? 1 : 0);
+      if (fill) fill.style.width = (pct * 100).toFixed(1) + '%';
+      if (pctEl) pctEl.textContent = Math.round(pct * 100) + '%';
+
+      // 返回顶部按钮显隐
+      const backTop = $('duBackTop');
+      if (backTop) backTop.classList.toggle('visible', scrolled > 300);
+
+      // 当前章节：取判定线之上最后一个章节
+      let cur = null;
+      const line = Math.min(150, vh * 0.3);
+      for (let i = 0; i < secs.length; i++) {
+        if (secs[i].getBoundingClientRect().top <= line) cur = secs[i]; else break;
+      }
+      if (cur) {
+        const no = cur.getAttribute('data-sec');
+        const title = cur.querySelector('.du-sec-title');
+        if (chapterEl) chapterEl.textContent = title ? title.textContent : '深度缘分报告';
+        if (subEl) subEl.textContent = '第 ' + (Number(no) + 1) + ' / ' + secs.length + ' 章 · 正在阅读';
+      } else {
+        if (chapterEl) chapterEl.textContent = '深度缘分报告';
+        if (subEl) subEl.textContent = '正在阅读 · 共 ' + secs.length + ' 章';
+      }
+      ticking = false;
+    }
+    function onScroll() {
+      if (!active || ticking) return;
+      ticking = true;
+      requestAnimationFrame(updateProgress);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    // 仅在报告区进入视口时显示，离开后收起
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        const e = entries[0];
+        active = e.isIntersecting;
+        bar.classList.toggle('show', active);
+        bar.setAttribute('aria-hidden', active ? 'false' : 'true');
+        if (active) updateProgress();
+      }, { rootMargin: '-72px 0px -40% 0px', threshold: 0 });
+      io.observe(container);
+    } else {
+      active = true;
+      bar.classList.add('show');
+      updateProgress();
+    }
+  }
+
   function renderDeepZone(a, b, res) {
+    // 每次重渲染先清掉旧的固定阅读条，避免重复
+    const oldBar = $('duTopBar');
+    if (oldBar) oldBar.remove();
     if (isPairUnlocked(currentSig)) {
       const d = B.deepReport(a, b, res);
       const r = d.rich;
@@ -610,13 +680,13 @@
               <button type="button" id="duCollapseAll">全部收起</button>
             </div>
           </div>
-          <div class="du-progress"><div class="du-progress-bar" id="duProgressBar"></div></div>
           <nav class="du-toc" id="duToc">${tocHtml}</nav>
 
           <div class="du-sections" id="duSections">${secHtml}</div>
           <button type="button" class="du-backtop" id="duBackTop">↑ 回到顶部</button>
         </div>`;
       initDeepInteractions();
+      mountReadingBar();
     } else {
       const token = shortToken(currentSig);
       // 未解锁也先把报告算出来：让用户「看得见」自己将要拿到什么，而不是只看一串功能名
