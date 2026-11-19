@@ -382,16 +382,140 @@
   }
 
   // ===== 深度缘分解锁区 =====
+  // 深度报告阅读交互：折叠章节 / 目录跳转 / 进度条 / 返回顶部
+  function initDeepInteractions() {
+    const zone = $('duSections');
+    if (!zone) return;
+    const toc = $('duToc');
+    const secs = Array.prototype.slice.call(zone.querySelectorAll('.du-sec'));
+    const tocItems = toc ? Array.prototype.slice.call(toc.querySelectorAll('.du-toc-item')) : [];
+
+    function setOpen(sec, open) {
+      sec.classList.toggle('open', open);
+      const head = sec.querySelector('.du-sec-head');
+      if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const idx = sec.getAttribute('data-sec');
+      tocItems.forEach(t => { if (t.getAttribute('data-sec') === idx) t.classList.toggle('active', open); });
+    }
+
+    // 点击章节标题切换展开
+    zone.addEventListener('click', (e) => {
+      const head = e.target.closest('.du-sec-head');
+      if (head) {
+        const sec = head.closest('.du-sec');
+        setOpen(sec, !sec.classList.contains('open'));
+      }
+    });
+
+    // 目录跳转：展开目标并滚动定位
+    if (toc) toc.addEventListener('click', (e) => {
+      const item = e.target.closest('.du-toc-item');
+      if (!item) return;
+      const idx = item.getAttribute('data-sec');
+      const target = zone.querySelector('.du-sec[data-sec="' + idx + '"]');
+      if (!target) return;
+      setOpen(target, true);
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.classList.add('flash');
+      setTimeout(() => target.classList.remove('flash'), 1200);
+      if (window.innerWidth <= 640) $('duToc') && $('duToc').classList.remove('show');
+    });
+
+    const expandAll = $('duExpandAll');
+    if (expandAll) expandAll.addEventListener('click', () => secs.forEach(s => setOpen(s, true)));
+    const collapseAll = $('duCollapseAll');
+    if (collapseAll) collapseAll.addEventListener('click', () => secs.forEach(s => setOpen(s, false)));
+
+    const tocToggle = $('duTocToggle');
+    if (tocToggle) tocToggle.addEventListener('click', () => {
+      if (toc) toc.classList.toggle('show');
+      tocToggle.classList.toggle('active');
+    });
+
+    const backTop = $('duBackTop');
+    if (backTop) backTop.addEventListener('click', () => {
+      const anchor = zone.closest('.deep-unlocked') || zone;
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // 阅读进度条：基于深度区滚动位置
+    const progress = $('duProgressBar');
+    const container = zone.closest('.deep-unlocked') || zone;
+    if (progress) {
+      let ticking = false;
+      window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const rect = container.getBoundingClientRect();
+          const total = rect.height - window.innerHeight;
+          const scrolled = -rect.top;
+          const pct = total > 0 ? Math.max(0, Math.min(1, scrolled / total)) : 0;
+          progress.style.width = (pct * 100).toFixed(1) + '%';
+          if (backTop) backTop.classList.toggle('visible', scrolled > 300);
+          ticking = false;
+        });
+      }, { passive: true });
+    }
+
+    // 初始化目录高亮：默认展开的章节
+    secs.forEach(s => { if (s.classList.contains('open')) setOpen(s, true); });
+  }
+
   function renderDeepZone(a, b, res) {
     if (isPairUnlocked(currentSig)) {
       const d = B.deepReport(a, b, res);
       const r = d.rich;
       const nameA = safeName(els.nameA, '命主 A');
       const nameB = safeName(els.nameB, '命主 B');
+      // 章节清单：编号 / 图标 / 标题 / 正文 HTML。前 two 章默认展开，其余折叠。
+      const sections = [
+        { icon: '📜', title: '缘分深度长文', body: r.deepParas.map(p => `<p class="du-para">${p}</p>`).join('') },
+        { icon: '🧭', title: '关系里的角色分工', body: `<p class="du-para">${r.roles.a}</p><p class="du-para">${r.roles.b}</p><p class="du-para du-em">${r.roles.together}</p>` },
+        { icon: '🌤️', title: '情绪与相处节奏', body: `<p class="du-para">${r.rhythm.a}</p><p class="du-para">${r.rhythm.b}</p><p class="du-para du-em">${r.rhythm.together}</p>` },
+        { icon: '🌿', title: '五行调和指南', body: `<p class="du-para">${r.tuneRich}</p>` },
+        { icon: '💞', title: '桃花缘', body: `<p class="du-para">${r.taohuaRich}</p>` },
+        { icon: '💰', title: '财运合盘', body: `<p class="du-para">${r.wealthRich}</p>` },
+        { icon: '🚀', title: '事业协作', body: `<p class="du-para">${r.careerRich}</p>` },
+        { icon: '⚠️', title: `相处禁忌（${r.tabooRich.length} 条）`, body: `<ul class="du-taboo-list">${r.tabooRich.map(t => `<li>${t}</li>`).join('')}</ul>` },
+        { icon: '🗓️', title: '关系发展时间线 · 四阶段', body: `<div class="du-timeline">${d.timeline.map(t => `<div class="du-tl-item"><div class="stage">${t.stage}</div><div class="tip">${t.tip}</div></div>`).join('')}</div>` },
+        { icon: '✨', title: '未来三年流年时间轴', body: `<p class="du-fortune-intro">按两人的喜用五行与流年干支推演，逐年给出趋势主题与相处建议。愿你们趋吉避凶，把每一年都过成想要的样子 🌷</p><div class="du-fortune-list">${r.fortune.map(y => `
+                <div class="du-fortune-item lv-${y.level === '顺遂' ? 'good' : y.level === '需经营' ? 'care' : 'mid'}">
+                  <div class="fy-head">
+                    <span class="fy-year">${y.year}</span>
+                    <span class="fy-gz">${y.ganzhi}年 · ${y.zodiac}</span>
+                    <span class="fy-badge">${y.levelText}</span>
+                  </div>
+                  <div class="fy-theme">${y.theme}</div>
+                  <p class="fy-line">${y.themeLine}</p>
+                  <p class="fy-relation">${y.relation}</p>
+                  ${y.notes.length ? `<div class="fy-notes">${y.notes.map(n => `<span>${n}</span>`).join('')}</div>` : ''}
+                  <p class="fy-advice">💡 ${y.advice}</p>
+                </div>`).join('')}</div><p class="du-fortune-disclaimer">※ 流年推演源自传统命理五行生克，用于增加相处时的心意与仪式感，仅供娱乐参考，并非对具体事件的预测或保证。日子怎么过，终究由你们自己决定。</p>` },
+        { icon: '🪴', title: '未来三个月相处小计划', body: `<div class="du-plan">${r.plan.map(p => `<div class="du-plan-item"><div class="du-plan-t">${p.title}</div><div class="du-plan-d">${p.tip}</div></div>`).join('')}</div>` },
+        { icon: '🏷️', title: '你们的缘分关键词', body: `<div class="du-keywords">${d.keywords.map(k => `<span class="du-kw">${k}</span>`).join('')}</div>` },
+        { icon: '🔮', title: '专属开运守护', body: `<div class="du-lucky"><div class="du-lucky-item"><div class="du-lucky-k">幸运色</div><div class="du-lucky-v">${d.lucky.colors.join('、')}</div></div><div class="du-lucky-item"><div class="du-lucky-k">开运小物</div><div class="du-lucky-v">${d.lucky.items.join('、')}</div></div><div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">宜一起做</div><div class="du-lucky-v">${d.lucky.scenes}</div></div><div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">近期宜避</div><div class="du-lucky-v">${d.lucky.avoid}</div></div></div>` },
+        { icon: '💬', title: '沟通风格 & 化解话术', body: `<p class="du-talk">${d.talk.a}</p><p class="du-talk">${d.talk.b}</p><p class="du-talk-tip">💡 ${d.talk.tip}</p><div class="du-scripts"><div class="du-scripts-t">可以直接照着说：</div>${r.scripts.map(s => `<p class="du-script">${s}</p>`).join('')}</div>` },
+        { icon: '✍️', title: '专属缘分词', body: `<p class="du-sig-text">${d.signature}</p>` },
+        { icon: '💌', title: '写给你们', body: `<p class="du-para">${r.closing}</p>` }
+      ];
+
+      const tocHtml = sections.map((s, i) => `<button type="button" class="du-toc-item" data-sec="${i}"><span class="du-toc-n">${String(i + 1).padStart(2, '0')}</span><span class="du-toc-ic">${s.icon}</span><span class="du-toc-t">${s.title}</span></button>`).join('');
+      const secHtml = sections.map((s, i) => `
+        <section class="du-sec${i < 2 ? ' open' : ''}" id="du-sec-${i}" data-sec="${i}">
+          <button type="button" class="du-sec-head" aria-expanded="${i < 2}">
+            <span class="du-sec-no">${String(i + 1).padStart(2, '0')}</span>
+            <span class="du-sec-icon">${s.icon}</span>
+            <span class="du-sec-title">${s.title}</span>
+            <span class="du-sec-arrow">⌄</span>
+          </button>
+          <div class="du-sec-body"><div class="du-sec-inner">${s.body}</div></div>
+        </section>`).join('');
+
       els.deepZone.innerHTML = `
         <div class="deep-unlocked">
           <div class="du-head">🌟 深度缘分报告（已解锁）</div>
-          <p class="du-intro">以下十余个章节，全部按你们两人的四柱单独生成，换一对人就是另一份。慢慢看，值得收藏 🌷</p>
+          <p class="du-intro">全部章节都按你们两人的四柱单独生成，换一对人就是另一份。为避免一次看不完，章节已折叠——点标题即可展开，或用上方目录直达 🌷</p>
           <div class="du-persona-grid">
             <div class="du-persona">
               <h4>${nameA}</h4>
@@ -408,99 +532,21 @@
               <div class="du-need">${d.personB.need}；${d.personB.pace}。</div>
             </div>
           </div>
-          <div class="du-block">
-            <h4>📜 缘分深度长文</h4>
-            ${r.deepParas.map(p => `<p class="du-para">${p}</p>`).join('')}
-          </div>
-          <div class="du-block">
-            <h4>🧭 关系里的角色分工</h4>
-            <p class="du-para">${r.roles.a}</p>
-            <p class="du-para">${r.roles.b}</p>
-            <p class="du-para du-em">${r.roles.together}</p>
-          </div>
-          <div class="du-block">
-            <h4>🌤️ 情绪与相处节奏</h4>
-            <p class="du-para">${r.rhythm.a}</p>
-            <p class="du-para">${r.rhythm.b}</p>
-            <p class="du-para du-em">${r.rhythm.together}</p>
-          </div>
-          <div class="du-block">
-            <h4>🌿 五行调和指南</h4>
-            <p class="du-para">${r.tuneRich}</p>
-          </div>
-          <div class="du-specials">
-            <div class="du-special"><h4>💞 桃花缘</h4><p>${r.taohuaRich}</p></div>
-            <div class="du-special"><h4>💰 财运合盘</h4><p>${r.wealthRich}</p></div>
-            <div class="du-special"><h4>🚀 事业协作</h4><p>${r.careerRich}</p></div>
-          </div>
-          <div class="du-block">
-            <h4>⚠️ 相处禁忌（${r.tabooRich.length} 条）</h4>
-            <ul class="du-taboo-list">${r.tabooRich.map(t => `<li>${t}</li>`).join('')}</ul>
-          </div>
-          <div class="du-block" style="margin-top:14px;">
-            <h4>🗓️ 关系发展时间线 · 四阶段</h4>
-            <div class="du-timeline">
-              ${d.timeline.map(t => `<div class="du-tl-item"><div class="stage">${t.stage}</div><div class="tip">${t.tip}</div></div>`).join('')}
+
+          <div class="du-reportbar">
+            <button type="button" class="du-toc-toggle" id="duTocToggle">📑 章节目录 <span>共 ${sections.length} 章 ⌄</span></button>
+            <div class="du-bar-actions">
+              <button type="button" id="duExpandAll">全部展开</button>
+              <button type="button" id="duCollapseAll">全部收起</button>
             </div>
           </div>
-          <div class="du-block du-fortune">
-            <h4>✨ 未来三年流年时间轴</h4>
-            <p class="du-fortune-intro">按两人的喜用五行与流年干支推演，逐年给出趋势主题与相处建议。愿你们趋吉避凶，把每一年都过成想要的样子 🌷</p>
-            <div class="du-fortune-list">
-              ${r.fortune.map(y => `
-                <div class="du-fortune-item lv-${y.level === '顺遂' ? 'good' : y.level === '需经营' ? 'care' : 'mid'}">
-                  <div class="fy-head">
-                    <span class="fy-year">${y.year}</span>
-                    <span class="fy-gz">${y.ganzhi}年 · ${y.zodiac}</span>
-                    <span class="fy-badge">${y.levelText}</span>
-                  </div>
-                  <div class="fy-theme">${y.theme}</div>
-                  <p class="fy-line">${y.themeLine}</p>
-                  <p class="fy-relation">${y.relation}</p>
-                  ${y.notes.length ? `<div class="fy-notes">${y.notes.map(n => `<span>${n}</span>`).join('')}</div>` : ''}
-                  <p class="fy-advice">💡 ${y.advice}</p>
-                </div>`).join('')}
-            </div>
-            <p class="du-fortune-disclaimer">※ 流年推演源自传统命理五行生克，用于增加相处时的心意与仪式感，仅供娱乐参考，并非对具体事件的预测或保证。日子怎么过，终究由你们自己决定。</p>
-          </div>
-          <div class="du-block">
-            <h4>🪴 未来三个月相处小计划</h4>
-            <div class="du-plan">
-              ${r.plan.map(p => `<div class="du-plan-item"><div class="du-plan-t">${p.title}</div><div class="du-plan-d">${p.tip}</div></div>`).join('')}
-            </div>
-          </div>
-          <div class="du-block">
-            <h4>🏷️ 你们的缘分关键词</h4>
-            <div class="du-keywords">${d.keywords.map(k => `<span class="du-kw">${k}</span>`).join('')}</div>
-          </div>
-          <div class="du-block">
-            <h4>🔮 专属开运守护</h4>
-            <div class="du-lucky">
-              <div class="du-lucky-item"><div class="du-lucky-k">幸运色</div><div class="du-lucky-v">${d.lucky.colors.join('、')}</div></div>
-              <div class="du-lucky-item"><div class="du-lucky-k">开运小物</div><div class="du-lucky-v">${d.lucky.items.join('、')}</div></div>
-              <div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">宜一起做</div><div class="du-lucky-v">${d.lucky.scenes}</div></div>
-              <div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">近期宜避</div><div class="du-lucky-v">${d.lucky.avoid}</div></div>
-            </div>
-          </div>
-          <div class="du-block">
-            <h4>💬 沟通风格 &amp; 化解话术</h4>
-            <p class="du-talk">${d.talk.a}</p>
-            <p class="du-talk">${d.talk.b}</p>
-            <p class="du-talk-tip">💡 ${d.talk.tip}</p>
-            <div class="du-scripts">
-              <div class="du-scripts-t">可以直接照着说：</div>
-              ${r.scripts.map(s => `<p class="du-script">${s}</p>`).join('')}
-            </div>
-          </div>
-          <div class="du-block du-signature">
-            <h4>✍️ 专属缘分词</h4>
-            <p class="du-sig-text">${d.signature}</p>
-          </div>
-          <div class="du-block du-closing">
-            <h4>💌 写给你们</h4>
-            <p class="du-para">${r.closing}</p>
-          </div>
+          <div class="du-progress"><div class="du-progress-bar" id="duProgressBar"></div></div>
+          <nav class="du-toc" id="duToc">${tocHtml}</nav>
+
+          <div class="du-sections" id="duSections">${secHtml}</div>
+          <button type="button" class="du-backtop" id="duBackTop">↑ 回到顶部</button>
         </div>`;
+      initDeepInteractions();
     } else {
       const token = shortToken(currentSig);
       // 未解锁也先把报告算出来：让用户「看得见」自己将要拿到什么，而不是只看一串功能名
