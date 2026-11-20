@@ -1106,6 +1106,75 @@ input:focus, select:focus {
 }
 .du-backtop.visible { opacity: 1; visibility: visible; transform: translateY(0); }
 
+/* ===== 系统优化新增（2026-11-20）===== */
+/* 输入提示 */
+.field-hint { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 3px; line-height: 1.5; opacity: 0.85; }
+/* 结论先行卡 */
+.verdict-card { background: linear-gradient(135deg, rgba(124, 91, 191, 0.09), rgba(226, 85, 143, 0.08)); border: 1px solid rgba(226, 85, 143, 0.28); border-radius: var(--radius-md); padding: 16px 18px; margin: 16px 0; box-shadow: var(--shadow-sm); }
+.verdict-head { display: flex; align-items: center; gap: 8px; font-family: var(--font-cn); font-size: 14px; color: var(--purple-deep); letter-spacing: 1px; margin-bottom: 10px; }
+.verdict-seal { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, var(--pink-deep), var(--purple-deep)); color: #fff; font-size: 15px; }
+.verdict-main { font-size: 14px; line-height: 1.85; color: var(--ink); margin-bottom: 10px; }
+.verdict-main b { color: var(--pink-deep); font-weight: 700; }
+.verdict-kws { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0 10px; }
+.verdict-kws span { font-size: 12px; color: var(--purple-deep); background: rgba(255,255,255,.7); border: 1px solid var(--card-line); border-radius: 18px; padding: 4px 12px; }
+.verdict-tip { font-size: 12.5px; color: var(--ink); background: rgba(255,255,255,.62); border-left: 3px solid var(--gold); border-radius: 8px; padding: 9px 12px; line-height: 1.65; margin: 0; }
+/* 时辰不详提示 */
+.time-unknown-tip { font-size: 12px; color: #9a6b1f; background: rgba(217, 178, 90, 0.14); border: 1px solid rgba(217, 178, 90, 0.4); border-radius: 10px; padding: 9px 13px; margin: 12px 0; line-height: 1.6; }
+/* 分数口径说明 */
+.score-explain { margin-top: 12px; text-align: left; }
+.score-explain summary { font-size: 11.5px; color: var(--purple-deep); cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 4px; opacity: 0.9; }
+.score-explain summary::-webkit-details-marker { display: none; }
+.score-explain summary::before { content: "ⓘ"; font-size: 12px; }
+.score-explain p { font-size: 12px; color: var(--ink-soft); line-height: 1.75; margin-top: 8px; background: rgba(255,255,255,.6); border-radius: 10px; padding: 10px 12px; }
+/* 术语悬浮解释 */
+abbr.term { text-decoration: underline dotted rgba(124, 91, 191, 0.6); text-underline-offset: 3px; cursor: help; color: var(--purple-deep); }
+/* 单人命格次级入口 */
+.solo-entry { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--pink-deep); background: rgba(226, 85, 143, 0.08); border: 1px dashed rgba(226, 85, 143, 0.45); border-radius: 18px; padding: 5px 12px; cursor: pointer; transition: all 0.2s; }
+.solo-entry:hover { background: rgba(226, 85, 143, 0.16); }
+.solo-inline { margin-top: 12px; background: rgba(255,255,255,.66); border: 1px solid var(--card-line); border-radius: var(--radius-sm); padding: 13px 15px; animation: fadeUp 0.3s ease; }
+.solo-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 9px; }
+.solo-name { font-family: var(--font-cn); font-size: 16px; color: var(--pink-deep); font-weight: 700; }
+.solo-dm { font-size: 12px; color: var(--purple-deep); }
+.solo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+.solo-grid > div { font-size: 12px; line-height: 1.55; }
+.solo-grid b { display: block; color: var(--purple-deep); font-size: 11px; margin-bottom: 2px; }
+.solo-grid span { color: var(--ink); }
+.solo-wxs { display: flex; flex-wrap: wrap; gap: 6px; }
+.solo-wx { font-weight: 700; }
+.solo-disclaimer { font-size: 11px; color: var(--ink-soft); margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--card-line); line-height: 1.6; }
+/* 单人速查小工具区 */
+.solo-section { margin: 22px 0; background: rgba(255,255,255,.5); border: 1px solid var(--card-line); border-radius: var(--radius); padding: 20px 22px; }
+.solo-badge { font-family: var(--font-ui); font-size: 11px; color: var(--wx-mu); background: rgba(63,168,106,.12); border-radius: 18px; padding: 3px 10px; font-weight: 400; margin-left: 8px; vertical-align: middle; letter-spacing: 0; }
+.solo-form { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 14px 0 6px; }
+.solo-form input, .solo-form select { font-size: 13px; padding: 8px 10px; border: 1px solid var(--card-line); border-radius: 10px; background: rgba(255,255,255,.85); color: var(--ink); }
+.solo-form input[type="text"] { flex: 1 1 130px; max-width: 180px; }
+.solo-hint { text-align: center; margin-bottom: 4px; }
+.solo-result { margin-top: 14px; background: rgba(255,255,255,.66); border: 1px solid var(--card-line); border-radius: var(--radius-md); padding: 15px 18px; animation: fadeUp 0.3s ease; }
+/* 小知识折叠 */
+.tips-more { margin-top: 12px; text-align: center; }
+.tips-more > summary { display: inline-block; font-size: 12.5px; color: var(--purple-deep); background: rgba(255,255,255,.7); border: 1px solid var(--card-line); border-radius: 20px; padding: 7px 18px; cursor: pointer; list-style: none; }
+.tips-more > summary::-webkit-details-marker { display: none; }
+.tips-more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 14px; text-align: left; }
+/* 分享主题选择 */
+.share-theme { font-size: 12.5px; padding: 8px 10px; border: 1px solid var(--card-line); border-radius: 18px; background: rgba(255,255,255,.85); color: var(--purple-deep); cursor: pointer; }
+/* 复制暗号下一步引导 */
+.copy-next-tip { font-size: 12px; color: var(--ink); background: rgba(63,168,106,.1); border: 1px solid rgba(63,168,106,.3); border-radius: 10px; padding: 9px 12px; margin-top: 10px; line-height: 1.6; animation: fadeUp 0.25s ease; }
+.copy-next-tip b { color: var(--wx-mu); }
+/* 解锁后分享引导 */
+.unlock-share-guide { font-size: 12.5px; color: var(--ink); background: linear-gradient(135deg, rgba(217,178,90,.14), rgba(226,85,143,.1)); border: 1px solid rgba(217,178,90,.4); border-radius: 12px; padding: 11px 14px; margin: 10px 0 0; line-height: 1.65; text-align: center; animation: fadeUp 0.3s ease; }
+/* 节日氛围（轻微，仅调背景球透明度与标题色） */
+body.mood-qixi .bg-orbs { opacity: 1.25; }
+body.mood-qixi .site-header h1 { color: var(--pink-deep); }
+body.mood-newyear .bg-orbs { filter: hue-rotate(18deg); }
+body.mood-spring .bg-orbs { filter: hue-rotate(-12deg) saturate(1.1); }
+
+@media (max-width: 640px) {
+  .solo-grid { grid-template-columns: 1fr; }
+  .solo-section { padding: 16px 14px; }
+  .solo-form input[type="text"], .solo-form select, .solo-form button { flex: 1 1 100%; max-width: none; }
+  .verdict-card { padding: 13px 14px; }
+  .share-row { flex-wrap: wrap; }
+}
 @media (max-width: 640px) {
   .du-reportbar { top: 56px; padding: 8px 10px; }
   .du-rb-inner { padding: 6px 13px 5px; gap: 8px; }

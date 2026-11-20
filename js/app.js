@@ -113,7 +113,9 @@
     pillarA: $('pillarA'), pillarB: $('pillarB'),
     dimensions: $('dimensions'), adviceList: $('adviceList'),
     shareBtn: $('shareBtn'), shareHint: $('shareHint'), resetBtn: $('resetBtn'),
-    deepZone: $('deepZone'),
+    deepZone: $('deepZone'), verdictCard: $('verdictCard'), timeUnknownTip: $('timeUnknownTip'),
+    soloName: $('soloName'), soloDate: $('soloDate'), soloTime: $('soloTime'),
+    soloBtn: $('soloBtn'), soloResult: $('soloResult'),
     unlockModal: $('unlockModal'), modalClose: $('modalClose'),
     unlockCode: $('unlockCode'), unlockConfirm: $('unlockConfirm'), unlockMsg: $('unlockMsg'),
     payWechat: $('payWechat')
@@ -135,7 +137,7 @@
     return { y, m, d, shichen };
   }
 
-  function buildPillarCard(p, name) {
+  function buildPillarCard(p, name, side) {
     const wxColor = B.WX_COLOR;
     const dot = (w) => `<span class="dotwx" style="background:${wxColor[w]}"></span>`;
     const cols = p.pillars.map(pl => `
@@ -150,7 +152,8 @@
       <h4>${title}</h4>
       <div class="pillar-sub">生肖 ${p.zodiac} · 日主 ${p.dayMaster}（${p.dayMasterWX}${p.dayMasterYinYang}）</div>
       <div class="pillar-grid">${cols}</div>
-      <div class="persona">${p.personality}</div>`;
+      <div class="persona">${p.personality}</div>
+      <button type="button" class="solo-entry" data-side="${side}">看 ${title} 的完整命格 →</button>`;
   }
 
   function renderDimensions(dims) {
@@ -245,6 +248,119 @@
     // 去重 + 取前 8 条（全部免费）
     const uniq = [...new Set(tips)].slice(0, 8);
     els.adviceList.innerHTML = uniq.map(t => `<li>${t}</li>`).join('');
+  }
+
+  // ===== P1-2 结论先行卡：30 秒拿到「所以到底怎么样」=====
+  function renderVerdict(res) {
+    const box = els.verdictCard;
+    if (!box) return;
+    const total = res.total;
+    const dims = res.details.map((d, i) => ({ ...d, key: i }))
+      .sort((x, y) => (y.score / y.max) - (x.score / x.max));
+    const best = dims[0], worst = dims[dims.length - 1];
+    const tone = total >= 70 ? '旺' : total >= 55 ? '稳' : total >= 40 ? '有火花' : '偏淡';
+    const kws = (res.keywords && res.keywords.length ? res.keywords : [best.label, worst.label]).slice(0, 3);
+    box.innerHTML = `
+      <div class="verdict-head"><span class="verdict-seal">缘</span><span>一分钟速读 · 你们的故事</span></div>
+      <p class="verdict-main">这是一段 <b>${tone}</b> 的缘分：最亮的地方是 <b>${best.name}（${best.label}）</b>，最需要一起学着照顾的是 <b>${worst.name}</b>。</p>
+      <div class="verdict-kws">${kws.map(k => `<span>${escapeHtml(k)}</span>`).join('')}</div>
+      <p class="verdict-tip">💡 今天就能做的一件事：${escapeHtml(best.text.slice(0, 42))}${best.text.length > 42 ? '…' : ''}</p>`;
+    box.hidden = false;
+  }
+
+  // ===== P0-4 时辰不详后果提示（如实告知，防「算不准」退款）=====
+  function renderTimeUnknownTip(ia, ib) {
+    const tip = els.timeUnknownTip;
+    if (!tip) return;
+    const aU = !ia.shichen || ia.shichen === '子' && !els.timeA.value;
+    const bU = !ib.shichen || ib.shichen === '子' && !els.timeB.value;
+    const who = [aU ? safeName(els.nameA, '命主 A') : '', bU ? safeName(els.nameB, '命主 B') : ''].filter(Boolean);
+    if (who.length) {
+      tip.innerHTML = `※ ${who.join('、')}的出生时辰未填，时柱相关解读按子时估算，这部分仅供参考；知道大致时段可在上方重选时辰后再合一次。`;
+      tip.hidden = false;
+    } else {
+      tip.hidden = true;
+    }
+  }
+
+  // ===== P1-1 关键术语解释：给结果区里的术语加悬浮白话解释 =====
+  const TERM_DICT = {
+    '日主': '出生那天的天干，代表「你自己」',
+    '喜用神': '能让命局更舒服的那味五行',
+    '用神': '能让命局更舒服的那味五行',
+    '纳音': '六十甲子配的五行称号，如「海中金」',
+    '比和': '两人五行相同，气场相近',
+    '相生': '一方滋养另一方，付出容易被接住',
+    '相克': '彼此有张力，需要磨合，不等于不好',
+    '六合': '地支间的一种吸引、默契组合',
+    '三合': '地支间的合力组合，相处顺',
+    '六冲': '地支间的碰撞组合，易有变动',
+    '偏旺': '某类五行偏多，性格上更有主见',
+    '偏弱': '某类五行偏少，更容易被环境带动',
+    '配偶宫': '日支，传统上用来看亲密关系',
+    '印': '生我者的五行，代表被滋养、被支持'
+  };
+  function decorateTerms(root) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      if (!node.nodeValue || node.parentElement && node.parentElement.closest('abbr.term')) return;
+      const keys = Object.keys(TERM_DICT).sort((a, b) => b.length - a.length);
+      const re = new RegExp('(' + keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'g');
+      if (!re.test(node.nodeValue)) return;
+      const frag = document.createDocumentFragment();
+      let last = 0, m;
+      re.lastIndex = 0;
+      while ((m = re.exec(node.nodeValue)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(node.nodeValue.slice(last, m.index)));
+        const ab = document.createElement('abbr');
+        ab.className = 'term'; ab.textContent = m[0]; ab.title = TERM_DICT[m[0]];
+        frag.appendChild(ab);
+        last = m.index + m[0].length;
+      }
+      if (last < node.nodeValue.length) frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  // ===== P1-3 单人命格浅卡：复用 personDeep，免费，一屏内读完 =====
+  function soloCardHTML(p, label) {
+    const pd = B.personDeep(p);
+    const wxColor = B.WX_COLOR;
+    const wxBar = ['木', '火', '土', '金', '水'].map(w => {
+      const n = p.elementCounts[w] || 0;
+      return `<span class="solo-wx ${wxColor[w] ? '' : ''}" style="color:${wxColor[w]}">${w}${n}</span>`;
+    }).join('');
+    return `
+      <div class="solo-card-head"><span class="solo-name">${escapeHtml(label)}</span><span class="solo-dm">日主 ${p.dayMaster} · ${pd.wx}${p.dayMasterYinYang}</span></div>
+      <div class="solo-grid">
+        <div><b>强弱</b><span>${pd.strength}</span></div>
+        <div><b>喜用</b><span>${pd.xiDesc}</span></div>
+        <div><b>性格底色</b><span>${pd.tone}</span></div>
+        <div><b>最需要</b><span>${pd.need}</span></div>
+        <div><b>相处节奏</b><span>${pd.pace}</span></div>
+        <div><b>五行分布</b><span class="solo-wxs">${wxBar}</span></div>
+      </div>
+      <p class="solo-disclaimer">※ 浅析仅供娱乐参考，不含流年运势与具体事件预测。想看两人的缘分，请用上方的双人合盘 🌷</p>`;
+  }
+  function bindSoloEntries(pa, pb) {
+    document.querySelectorAll('.solo-entry').forEach(btn => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', () => {
+        const p = btn.dataset.side === 'A' ? pa : pb;
+        const label = btn.dataset.side === 'A' ? safeName(els.nameA, '命主 A') : safeName(els.nameB, '命主 B');
+        let card = btn.parentNode.querySelector('.solo-inline');
+        if (card) { card.remove(); return; }
+        card = document.createElement('div');
+        card.className = 'solo-inline';
+        card.innerHTML = soloCardHTML(p, label);
+        btn.parentNode.appendChild(card);
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
   }
 
   // ===== 五行能量分布（免费加厚：把四柱里的五行摊开给你看）=====
@@ -616,9 +732,9 @@
         { icon: '💞', title: '桃花缘', body: `<p class="du-para">${r.taohuaRich}</p>` },
         { icon: '💰', title: '财运合盘', body: `<p class="du-para">${r.wealthRich}</p>` },
         { icon: '🚀', title: '事业协作', body: `<p class="du-para">${r.careerRich}</p>` },
-        { icon: '⚠️', title: `相处禁忌（${r.tabooRich.length} 条）`, body: `<ul class="du-taboo-list">${r.tabooRich.map(t => `<li>${t}</li>`).join('')}</ul>` },
+        { icon: '⚠️', title: `相处提醒（${r.tabooRich.length} 条）`, body: `<ul class="du-taboo-list">${r.tabooRich.map(t => `<li>${t}</li>`).join('')}</ul>` },
         { icon: '🗓️', title: '关系发展时间线 · 四阶段', body: `<div class="du-timeline">${d.timeline.map(t => `<div class="du-tl-item"><div class="stage">${t.stage}</div><div class="tip">${t.tip}</div></div>`).join('')}</div>` },
-        { icon: '✨', title: '未来三年流年时间轴', body: `<p class="du-fortune-intro">按两人的喜用五行与流年干支推演，逐年给出趋势主题与相处建议。愿你们趋吉避凶，把每一年都过成想要的样子 🌷</p><div class="du-fortune-list">${r.fortune.map(y => `
+        { icon: '✨', title: '未来三年相处趋势手记', body: `<p class="du-fortune-intro">按两人的喜用五行与年份干支，逐年给出一个相处主题与小建议——当作给日子添点仪式感的参考，而非对具体事件的预言。愿你们把每一年都过成想要的样子 🌷</p><div class="du-fortune-list">${r.fortune.map(y => `
                 <div class="du-fortune-item lv-${y.level === '顺遂' ? 'good' : y.level === '需经营' ? 'care' : 'mid'}">
                   <div class="fy-head">
                     <span class="fy-year">${y.year}</span>
@@ -630,10 +746,10 @@
                   <p class="fy-relation">${y.relation}</p>
                   ${y.notes.length ? `<div class="fy-notes">${y.notes.map(n => `<span>${n}</span>`).join('')}</div>` : ''}
                   <p class="fy-advice">💡 ${y.advice}</p>
-                </div>`).join('')}</div><p class="du-fortune-disclaimer">※ 流年推演源自传统命理五行生克，用于增加相处时的心意与仪式感，仅供娱乐参考，并非对具体事件的预测或保证。日子怎么过，终究由你们自己决定。</p>` },
+                </div>`).join('')}</div><p class="du-fortune-disclaimer">※ 本手记取传统五行生克之意，用于增加相处时的心意与仪式感，仅供娱乐参考，并非对具体事件的预测或保证。日子怎么过，终究由你们自己决定。</p>` },
         { icon: '🪴', title: '未来三个月相处小计划', body: `<div class="du-plan">${r.plan.map(p => `<div class="du-plan-item"><div class="du-plan-t">${p.title}</div><div class="du-plan-d">${p.tip}</div></div>`).join('')}</div>` },
         { icon: '🏷️', title: '你们的缘分关键词', body: `<div class="du-keywords">${d.keywords.map(k => `<span class="du-kw">${k}</span>`).join('')}</div>` },
-        { icon: '🔮', title: '专属开运守护', body: `<div class="du-lucky"><div class="du-lucky-item"><div class="du-lucky-k">幸运色</div><div class="du-lucky-v">${d.lucky.colors.join('、')}</div></div><div class="du-lucky-item"><div class="du-lucky-k">开运小物</div><div class="du-lucky-v">${d.lucky.items.join('、')}</div></div><div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">宜一起做</div><div class="du-lucky-v">${d.lucky.scenes}</div></div><div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">近期宜避</div><div class="du-lucky-v">${d.lucky.avoid}</div></div></div>` },
+        { icon: '🔮', title: '专属开运小物参考', body: `<div class="du-lucky"><div class="du-lucky-item"><div class="du-lucky-k">幸运色</div><div class="du-lucky-v">${d.lucky.colors.join('、')}</div></div><div class="du-lucky-item"><div class="du-lucky-k">开运小物</div><div class="du-lucky-v">${d.lucky.items.join('、')}</div></div><div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">宜一起做</div><div class="du-lucky-v">${d.lucky.scenes}</div></div><div class="du-lucky-item du-lucky-wide"><div class="du-lucky-k">近期宜避</div><div class="du-lucky-v">${d.lucky.avoid}</div></div></div>` },
         { icon: '💬', title: '沟通风格 & 化解话术', body: `<p class="du-talk">${d.talk.a}</p><p class="du-talk">${d.talk.b}</p><p class="du-talk-tip">💡 ${d.talk.tip}</p><div class="du-scripts"><div class="du-scripts-t">可以直接照着说：</div>${r.scripts.map(s => `<p class="du-script">${s}</p>`).join('')}</div>` },
         { icon: '✍️', title: '专属缘分词', body: `<p class="du-sig-text">${d.signature}</p>` },
         { icon: '💌', title: '写给你们', body: `<p class="du-para">${r.closing}</p>` }
@@ -701,11 +817,11 @@
         '桃花缘专项',
         '财运合盘专项',
         '事业协作专项',
-        '相处禁忌清单',
+        '相处提醒清单',
         '关系发展时间线 · 四阶段',
-        '✨ 未来三年流年时间轴 · 逐年推演',
+        '✨ 未来三年相处趋势手记 · 逐年参考',
         '未来三个月相处小计划',
-        '缘分关键词 + 专属开运守护',
+        '缘分关键词 + 专属开运小物参考',
         '沟通风格与化解话术（含例句）',
         '专属缘分词 + 写给你们'
       ];
@@ -745,7 +861,17 @@
       const ct = $('copyTokenBtn');
       if (ct) ct.addEventListener('click', () => {
         copyText(token,
-          () => { ct.textContent = '✅ 已复制，发给站长吧'; setTimeout(() => { ct.textContent = '📋 复制暗号'; }, 2000); },
+          () => {
+            ct.textContent = '✅ 已复制，去微信发给站长';
+            let tip = document.getElementById('copyNextTip');
+            if (!tip) {
+              tip = document.createElement('p');
+              tip.id = 'copyNextTip'; tip.className = 'copy-next-tip';
+              ct.parentNode.appendChild(tip);
+            }
+            tip.innerHTML = '下一步：打开微信 → 加站长 <b>' + PAY.wechat + '</b> → 粘贴暗号并付款，稍等就能收到 8 位解锁码 🌷';
+            setTimeout(() => { ct.textContent = '📋 复制暗号'; }, 2600);
+          },
           () => { ct.textContent = '请手动选中上面的暗号'; }
         );
       });
@@ -784,6 +910,16 @@
     showUnlockMsg('解锁成功，正在刷新…', true);
     if (lastCalc) renderDeepZone(lastCalc.pa, lastCalc.pb, lastCalc.res);
     els.shareBtn.textContent = '📸 保存无水印高清图';
+    // P1-5 解锁后引导保存与分享（满意度峰值，促裂变）
+    const shareRow = els.shareBtn.parentNode;
+    let guide = document.getElementById('unlockShareGuide');
+    if (!guide && shareRow) {
+      guide = document.createElement('p');
+      guide.id = 'unlockShareGuide';
+      guide.className = 'unlock-share-guide';
+      guide.innerHTML = '🎉 已解锁完成！分享图已自动去掉水印——点上方「保存无水印高清图」就能存下来，觉得准的话也欢迎分享给姐妹～';
+      shareRow.after(guide);
+    }
   }
 
   // 按需加载 html2canvas：首屏不下载，点「保存分享图」时才拉取，省约 47KB gzip
@@ -823,11 +959,20 @@
     }
     const prevBg = node.style.background;
     const prevBtn = els.shareBtn.style.display;
+    // P2-3 分享图配色主题
+    const THEMES = {
+      pink: { bg: 'linear-gradient(160deg,#fde7f1,#efe4fb 45%,#e6ecfb)', solid: '#fbe9f3' },
+      ink:  { bg: 'linear-gradient(160deg,#dcefe9,#e3eaf5 50%,#eae4f3)', solid: '#e2efe9' },
+      gold: { bg: 'linear-gradient(160deg,#fbf0d8,#f6e8d0 50%,#f3eadf)', solid: '#f8eed9' }
+    };
+    const themeSel = $('shareTheme');
+    const th = THEMES[themeSel && themeSel.value] || THEMES.pink;
     els.shareBtn.style.display = 'none';
+    if (themeSel) themeSel.style.display = 'none';
     els.shareHint.style.display = 'none';
-    node.style.background = 'linear-gradient(160deg,#fde7f1,#efe4fb 45%,#e6ecfb)';
+    node.style.background = th.bg;
     try {
-      const canvas = await html2canvas(node, { scale: 2, backgroundColor: '#fbe9f3', useCORS: true, logging: false });
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: th.solid, useCORS: true, logging: false });
       const link = document.createElement('a');
       link.download = '双女八字合盘_' + Date.now() + '.png';
       link.href = canvas.toDataURL('image/png');
@@ -840,6 +985,8 @@
       if (wm && wm.parentNode) wm.parentNode.removeChild(wm);
       node.style.background = prevBg;
       els.shareBtn.style.display = prevBtn;
+      const themeSelBack = $('shareTheme');
+      if (themeSelBack) themeSelBack.style.display = '';
       els.shareBtn.disabled = false;
       setTimeout(() => { els.shareHint.hidden = true; }, 2500);
     }
@@ -901,13 +1048,18 @@
         els.ratingStars.textContent = '★'.repeat(res.rating.stars) + '☆'.repeat(5 - res.rating.stars);
         els.summaryText.textContent = res.summary;
         buildPersonalInsight(pa, pb, res);
-        els.pillarA.innerHTML = buildPillarCard(pa, safeName(els.nameA, '命主'));
-        els.pillarB.innerHTML = buildPillarCard(pb, safeName(els.nameB, '命主'));
+        els.pillarA.innerHTML = buildPillarCard(pa, safeName(els.nameA, '命主'), 'A');
+        els.pillarB.innerHTML = buildPillarCard(pb, safeName(els.nameB, '命主'), 'B');
         renderWxChart(pa, pb);
         renderDimensions(res.details);
         buildAdvice(pa, pb, res.dimensions, res.total, els.relA.value);
+        renderVerdict(res);
+        renderTimeUnknownTip(ia, ib);
         renderDeepZone(pa, pb, res);
+        decorateTerms(els.result);
+        bindSoloEntries(pa, pb);
         els.shareBtn.textContent = isPairUnlocked(currentSig) ? '📸 保存无水印高清图' : '📸 保存分享图（体验版带水印）';
+        const themeSel = $('shareTheme'); if (themeSel) themeSel.hidden = false;
         els.result.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     } catch (e) {
@@ -1013,6 +1165,24 @@
   }
   renderGanCards();
 
+  // ===== P2-1 单人命格速查工具（次级免费入口，SEO 长尾）=====
+  if (els.soloBtn) {
+    els.soloBtn.addEventListener('click', () => {
+      const dateVal = els.soloDate.value;
+      if (!dateVal) { alert('请先填写出生日期（公历）'); return; }
+      const [y, m, d] = dateVal.split('-').map(Number);
+      try {
+        const p = B.parseBazi(y, m, d, els.soloTime.value || '子');
+        const label = (els.soloName.value || '').trim() || '你';
+        els.soloResult.innerHTML = soloCardHTML(p, escapeHtml(label));
+        els.soloResult.hidden = false;
+        els.soloResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (e) {
+        alert('日期有误，请检查后重试');
+      }
+    });
+  }
+
   // 免费 / 深度对照区：一键回到输入区
   const goCalcBtn = $('goCalcBtn');
   if (goCalcBtn) {
@@ -1056,6 +1226,18 @@
   els.modalClose.addEventListener('click', closeModal);
   els.unlockModal.addEventListener('click', (e) => { if (e.target === els.unlockModal) closeModal(); });
   els.unlockCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmUnlock(); });
+
+  // ===== P2-4 节日氛围：按日期给页面加一个轻微色调 class（不改结构，可一键关闭）=====
+  function applySeasonalMood() {
+    const now = new Date();
+    const m = now.getMonth() + 1, d = now.getDate();
+    let mood = '';
+    if ((m === 2 && d >= 12) || (m === 8 && d >= 18 && d <= 25)) mood = 'mood-qixi'; // 情人节 / 七夕
+    else if (m === 1 || m === 2) mood = 'mood-newyear';                              // 新春
+    else if (m >= 3 && m <= 5) mood = 'mood-spring';                                 // 春日
+    if (mood) document.body.classList.add(mood);
+  }
+  applySeasonalMood();
 
   // ===== PWA：注册 Service Worker（仅 https / localhost 生效，file:// 下静默跳过）=====
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

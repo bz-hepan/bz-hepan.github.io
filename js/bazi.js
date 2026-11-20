@@ -891,7 +891,7 @@
 
   // ---- 暴露接口 ----
   const API = {
-    parseBazi, analyzeCompat, deepReport,
+    parseBazi, analyzeCompat, deepReport, personDeep,
     GAN, ZHI, WUXING, GAN_WUXING, ZHI_WUXING, WX_COLOR, ZHI_ANIMAL, SHICHEN_HOUR,
     isLiuHe, isLiuChong, isGanHe, inSameSanHe, relWX
   };
