@@ -375,23 +375,27 @@
   function scoreZhi(a, b) {
     const za = a.pillars.map(p => p.zhi);
     const zb = b.pillars.map(p => p.zhi);
-    let s = 10;
     const found = { he: 0, chong: 0, hai: 0, po: 0, xing: 0, sanhe: 0 };
     za.forEach(x => {
       zb.forEach(y => {
-        if (isLiuHe(x, y)) { s += 6; found.he++; }
-        else if (isLiuChong(x, y)) { s -= 6; found.chong++; }
-        else if (isLiuHai(x, y)) { s -= 3; found.hai++; }
-        else if (isLiuPo(x, y)) { s -= 2; found.po++; }
-        else if (isSanXing(x, y)) { s -= 4; found.xing++; }
+        if (isLiuHe(x, y)) found.he++;
+        else if (isLiuChong(x, y)) found.chong++;
+        else if (isLiuHai(x, y)) found.hai++;
+        else if (isLiuPo(x, y)) found.po++;
+        else if (isSanXing(x, y)) found.xing++;
       });
       // 三合组成员重叠
       SAN_HE.forEach(g => {
         if (g.includes(x) && zb.some(y => g.includes(y))) found.sanhe++;
       });
     });
-    s += Math.min(8, found.sanhe * 2);
-    s = Math.max(0, Math.min(22, s));
+    // 两人各 4 地支两两比对共 16 组，逐组全额扣分会让冲一多就跌破地板。
+    // 改为：抬高基准 + 降低单组扣分 + 底部保护，保留「冲多分低、合多分高」的排序，
+    // 但不让这个高权重维度对大多数人恒定输出 0 分而失去区分度。
+    const plus = found.he * 5 + Math.min(8, found.sanhe * 2);
+    const minus = found.chong * 3.2 + found.xing * 2.2 + found.hai * 1.6 + found.po * 1;
+    let s = 14 + plus - minus;
+    s = Math.max(5, Math.min(22, s));
 
     let label, text;
     if (found.chong === 0 && found.he >= 1) { label = '地支多合'; text = `地支中出现了${found.he}组六合，几乎没有冲克，相处顺滑、让人安心。你们像被无形的手轻轻拢在一起，少有突如其来的别扭。`; }
