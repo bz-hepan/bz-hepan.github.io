@@ -866,6 +866,60 @@
     return sceneLib.filter(s => s.when);
   }
 
+  // —— 女女相处实招：来自真实伴侣经验与同性伴侣关系研究的语料 ——
+  // 只谈相处方式，不作取向判断；按命盘确定性选取，避免人人都看到同一句。
+  const LES_LORE = {
+    fusion: [
+      '你们容易把彼此的情绪当成自己的：她一沉默，你就开始猜是不是自己哪里做错了。给彼此留一块不用报备的小天地，不是疏远，是让「我」一直完整，「我们」才不会腻。',
+      '贴得越紧，越怕失去。你需要的也许不是更多的「随时在线」，而是一句明确的「我晚上回来」——确定感比黏在一起更安神。',
+      '两个人的世界如果重叠到没有缝隙，吵架时就没有退路。各自保有一个不重叠的爱好或朋友圈，回来才有话可聊，关系也才有喘息的余地。'
+    ],
+    mindread: [
+      '「你应该懂我」是心思细腻的人最容易掉进去的坑。想要陪伴，就直接说「睡前陪我聊五分钟」；明确的请求比含蓄的暗示更容易被接住，也更不伤感情。',
+      '两个人都很会表达，也会一起掉进「情绪洪水」——都在说，没人在听。约定一个暂停的小信号，吵到上头时先抱一抱、缓二十分钟，再回来把话讲完。',
+      '把「你总是这样」换成「刚才你那样，我有点失落」。说具体的一次、讲自己的感受，对方才听得进去——指责只会让两个敏感的人一起竖起防备。'
+    ],
+    outside: [
+      '你们对外界的节奏未必一致：一个想大方公开，一个还在准备。先商量好哪些人可以知道、哪些场合低调，把口径统一了，外面的风就吹不进你们之间。',
+      '遇到冒失的提问，你们不必每次都解释。约好一个只属于两个人的回应方式，把力气留给彼此，而不是说给不相干的人听。',
+      '外面的压力最怕关起门来变成互相消耗。先统一口径、再一起面对——"我们"站在一边，外界就只是背景音。'
+    ],
+    daily: [
+      '你们的爱藏在细节里：记得对方不吃香菜、加班时留一盏灯、逛街时她多看一眼的裙子。把这些小动作配一句「我记得」，被在乎的感觉就从心里落到了实处。',
+      '一起逛菜市场、一起做饭，饭桌上把对方爱吃的菜夹过去——再浓的浪漫，最后都落在一餐一饭里。这些不起眼的重复，才是关系最稳的地基。',
+      '睡前一段话、周末一顿饭、出门前牵个手——这些小仪式看着不起眼，却是给关系充电的插座。日子久了，靠的就是它们。'
+    ],
+    longterm: [
+      '别拿初见时的她当标准答案。人会变，爱好会变，每隔几年重新问一次「现在的你想要什么样的日子」，关系才不会停在最能心动的那一年。',
+      '激情会退，照顾不会：递杯水、扶一把、走路时下意识慢半拍——这些才是走久了以后最动人的部分。',
+      '长久不是「对的人就会自然在一起」，而是愿意主动维护：每周留一次只属于两人的时间，遇到反复出现的问题就坐下来好好谈，别让沉默替你们做决定。'
+    ],
+    equal: [
+      '没有谁「必须」主动、谁「必须」负责经济、谁「必须」做决定——这是两个人在一起的自由，也意味着要多花一点心思去协商。把默认值摊开说，反而更轻松。',
+      '你们都擅长照顾人，就容易一起掉进「过度付出」：把温柔都给对方，慢慢丢了自己。先照顾好自己的电量，给出的关心才不是透支。'
+    ]
+  };
+  function lesLore(a, b, pa, pb, res) {
+    const seed = a.dayMaster + b.dayMaster + a.pillars[0].zhi + b.pillars[0].zhi;
+    const fusion = _pick(seed + '|fusion', LES_LORE.fusion);
+    const mindread = _pick(seed + '|mindread', LES_LORE.mindread);
+    const outside = _pick(seed + '|outside', LES_LORE.outside);
+    const daily = _pick(seed + '|daily', LES_LORE.daily);
+    const longterm = _pick(seed + '|longterm', LES_LORE.longterm);
+    const equal = _pick(seed + '|equal', LES_LORE.equal);
+    const html = (arr) => arr.map(x => `<div class="du-lore-item"><span class="du-lore-dot">✦</span><p>${x}</p></div>`).join('');
+    return {
+      rich: `<div class="du-lore">`
+        + `<div class="du-lore-group"><h4>🫧 亲密与空间</h4>${html([fusion])}</div>`
+        + `<div class="du-lore-group"><h4>💬 别猜，直接说</h4>${html([mindread])}</div>`
+        + `<div class="du-lore-group"><h4>🌍 外面的世界</h4>${html([outside])}</div>`
+        + `<div class="du-lore-group"><h4>🍚 日常里的偏爱</h4>${html([daily])}</div>`
+        + `<div class="du-lore-group"><h4>🌳 走得久的秘密</h4>${html([longterm])}</div>`
+        + `<div class="du-lore-group"><h4>⚖️ 平等与自我</h4>${html([equal])}</div>`
+        + `</div><p class="du-fortune-disclaimer">※ 这一章整理自真实的女女相处经验与同性伴侣关系研究，写的是常见处境，不是对你们的断言。日子怎么过，你们说了算。</p>`
+    };
+  }
+
   // ============================================================
   // 深度报告 · 富文本扩展
   // 不改动 deepReport 原有字段与算法，只附加更详尽的分段长文、
@@ -1062,10 +1116,13 @@
     const scenes = lifeScenes(a, b, pa, pb, res);
     const scenesRich = `<div class="du-scenes">${scenes.map(s => `<div class="du-scene"><div class="du-scene-h"><span>${s.icon}</span><b>${s.key}</b></div><p>${s.text}</p></div>`).join('')}</div>`;
 
+    // —— 女女相处实招（真实经验 + 研究语料）——
+    const loreRich = lesLore(a, b, pa, pb, res).rich;
+
     return {
       deepParas, taohuaRich, wealthRich, careerRich, tuneRich,
       roles, rhythm, plan, tabooRich, scripts, facetsRich,
-      relationRich, conflictRich, scenesRich, relKind: relFocus.kind,
+      relationRich, conflictRich, scenesRich, loreRich, relKind: relFocus.kind,
       luckyAvoid, keywordsRich, closing,
       strongest, weakest, missingWX,
       fortune: fortuneYears(a, b, pa, pb)

@@ -1325,6 +1325,13 @@ body.mood-spring .bg-orbs { filter: hue-rotate(-12deg) saturate(1.1); }
 .du-scene-h span { font-size: 18px; }
 .du-scene-h b { font-size: 13px; color: var(--pink-deep); }
 .du-scene p { margin: 0; font-size: 12.3px; color: var(--ink); line-height: 1.65; text-align: justify; }
+/* 女女相处实招 */
+.du-lore { display: grid; gap: 12px; }
+.du-lore-group { background: rgba(255,255,255,.55); border: 1px solid var(--card-line); border-radius: 10px; padding: 11px 14px; }
+.du-lore-group h4 { font-size: 12.8px; color: var(--purple-deep); margin: 0 0 7px; }
+.du-lore-item { display: flex; gap: 8px; }
+.du-lore-dot { color: var(--pink-deep); font-size: 12px; flex: 0 0 auto; line-height: 1.7; }
+.du-lore-item p { margin: 0; font-size: 12.3px; color: var(--ink); line-height: 1.7; text-align: justify; }
 @media (max-width: 640px) {
   .du-facet-grid, .solo-facet-grid, .du-scenes { grid-template-columns: 1fr; }
 }

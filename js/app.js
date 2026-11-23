@@ -243,6 +243,14 @@
     if (dims.fate.score >= 9) tips.push('年柱根基相生，见家人、谈长远这类事阻力较小，可以慢慢推进不必急。');
     if (total >= 55 && total < 70) tips.push('分数中等偏上，属于「越处越有」的类型，别急着下结论，多给几次相处的机会。');
     if (dims.zhi.score >= 16) tips.push('地支互动顺，适合定一个长期共同习惯（每周一顿饭、每晚一段话），把顺滑变成稳定。');
+    // 来自真实女女相处经验的提醒：别靠猜、情绪不隔夜
+    const loreSeed = (a.dayMaster || '') + (b.dayMaster || '');
+    const freeLore = [
+      '两个心思细的人，最容易卡在「你应该懂我」。想要陪伴就直接说，明确的请求比含蓄的暗示更容易被接住。',
+      '别让情绪留过夜：睡前一句「刚才我语气不好」，往往就能化掉一整天的疙瘩——先低头不是认输。',
+      '贴得越紧越怕失去。给彼此留一块不用报备的小天地，不是疏远，是让「我们」一直有新鲜可聊。'
+    ];
+    tips.push(freeLore[loreSeed.charCodeAt(0) % freeLore.length]);
     tips.push('合盘只是参考：把今天看到的一两条拿去用，比记住那个分数更有意义。🌷');
 
     // 去重 + 取前 8 条（全部免费）
@@ -740,6 +748,7 @@
         { icon: '💞', title: `「${({恋人:'恋人',闺蜜:'闺蜜',搭档:'搭档',其他:'你们'})[r.relKind] || '你们'}」专属解读`, body: r.relationRich },
         { icon: '🔥', title: '冲突现场还原 · 从冷战到和好', body: r.conflictRich },
         { icon: '🎬', title: '生活场景模拟 · 四个真实时刻', body: r.scenesRich },
+        { icon: '🫧', title: '女女相处实招 · 六个常见处境', body: r.loreRich },
         { icon: '🎭', title: '性格六面 · 换个角度看她', body: r.facetsRich },
         { icon: '🧭', title: '关系里的角色分工', body: `<p class="du-para">${r.roles.a}</p><p class="du-para">${r.roles.b}</p><p class="du-para du-em">${r.roles.together}</p>` },
         { icon: '🌤️', title: '情绪与相处节奏', body: `<p class="du-para">${r.rhythm.a}</p><p class="du-para">${r.rhythm.b}</p><p class="du-para du-em">${r.rhythm.together}</p>` },
@@ -770,7 +779,7 @@
         { icon: '💌', title: '写给你们', body: `<p class="du-para">${r.closing}</p>` }
       ];
 
-      const ILLUS_BY_SEC = { 0: 'origin', 5: 'roles', 6: 'rhythm', 7: 'wuxing', 13: 'fortune', 16: 'lucky' };
+      const ILLUS_BY_SEC = { 0: 'origin', 6: 'roles', 7: 'rhythm', 8: 'wuxing', 14: 'fortune', 17: 'lucky' };
       const tocHtml = sections.map((s, i) => `<button type="button" class="du-toc-item" data-sec="${i}"><span class="du-toc-n">${String(i + 1).padStart(2, '0')}</span><span class="du-toc-ic">${s.icon}</span><span class="du-toc-t">${s.title}</span></button>`).join('');
       const secHtml = sections.map((s, i) => `
         <section class="du-sec${i < 2 ? ' open' : ''}" id="du-sec-${i}" data-sec="${i}">
@@ -830,6 +839,7 @@
         `💞 「${relTag}」专属解读 · 按你选的关系类型写`,
         '🔥 冲突现场还原 · 从冷战到和好的完整过程',
         '🎬 生活场景模拟 · 旅行 / 深夜聊天 / 生病照顾 / 花钱',
+        '🫧 女女相处实招 · 亲密与空间 / 别猜直接说 / 外界目光 / 日常偏爱 / 长久 / 平等',
         '🎭 性格六面 · 六个角度看她（初见 / 内心 / 压力 / 被爱 / 反差 / 节奏）',
         '关系里的角色分工 · 谁给、谁接',
         '情绪与相处节奏',
