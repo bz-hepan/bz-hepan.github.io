@@ -1004,26 +1004,87 @@
     }, 22);
   }
 
+  // 罗盘刻度 / 十二地支 / 莲花瓣：首次过场时生成一次，纯 DOM，零依赖
+  function buildRitualDial() {
+    const NS = 'http://www.w3.org/2000/svg';
+    const scale = document.querySelector('.rt-scale');
+    const branch = document.querySelector('.rt-branch');
+    if (scale && !scale.dataset.built) {
+      for (let i = 0; i < 60; i++) {
+        const a = (i * 6 - 90) * Math.PI / 180;
+        const major = i % 5 === 0;
+        const r1 = major ? 99 : 105, r2 = 111;
+        const ln = document.createElementNS(NS, 'line');
+        ln.setAttribute('x1', (120 + r1 * Math.cos(a)).toFixed(2));
+        ln.setAttribute('y1', (120 + r1 * Math.sin(a)).toFixed(2));
+        ln.setAttribute('x2', (120 + r2 * Math.cos(a)).toFixed(2));
+        ln.setAttribute('y2', (120 + r2 * Math.sin(a)).toFixed(2));
+        ln.setAttribute('class', major ? 'rt-tick major' : 'rt-tick');
+        scale.appendChild(ln);
+      }
+      scale.dataset.built = '1';
+    }
+    if (branch && !branch.dataset.built) {
+      const BRS = '子丑寅卯辰巳午未申酉戌亥';
+      for (let i = 0; i < 12; i++) {
+        const a = (i * 30 - 90) * Math.PI / 180;
+        const t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', (120 + 81 * Math.cos(a)).toFixed(2));
+        t.setAttribute('y', (120 + 81 * Math.sin(a)).toFixed(2));
+        t.setAttribute('class', 'rt-branch-t');
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'central');
+        t.textContent = BRS[i];
+        branch.appendChild(t);
+      }
+      branch.dataset.built = '1';
+    }
+    const lotus = document.querySelector('.rt-lotus');
+    if (lotus && !lotus.dataset.built) {
+      for (let i = 0; i < 8; i++) {
+        const p = document.createElement('i');
+        p.style.transform = 'rotate(' + (i * 45) + 'deg)';
+        lotus.appendChild(p);
+      }
+      lotus.dataset.built = '1';
+    }
+  }
+
   // 合盘仪式过场：先算好数据，播完动画再渲染，算法不受影响
+  const RITUAL_STEPS = ['正在排布四柱…', '推演五行生克…', '细读你们的缘分…'];
   function playRitual(after) {
     const mask = $('ritual');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!mask || reduce) { after(); return; }
+    if (!mask.hidden) return; // 过场进行中，忽略重复点击，避免叠加渲染
+    buildRitualDial();
+    const stepEl = $('ritualStep');
+    const fill = $('ritualFill');
     mask.hidden = false;
     mask.setAttribute('aria-hidden', 'false');
+    if (stepEl) stepEl.textContent = RITUAL_STEPS[0];
+    // 连续计算时重置进度条动画
+    if (fill) { fill.style.animation = 'none'; void fill.offsetWidth; fill.style.animation = ''; }
     let done = false;
+    const timers = [];
+    RITUAL_STEPS.forEach((txt, i) => {
+      if (i === 0) return;
+      timers.push(setTimeout(() => { if (stepEl) stepEl.textContent = txt; }, i * 480));
+    });
     const finish = () => {
       if (done) return;
       done = true;
+      timers.forEach(clearTimeout);
+      if (stepEl) stepEl.textContent = '缘分已定 · 为你揭晓';
       mask.classList.add('ritual-out');
       setTimeout(() => {
         mask.hidden = true;
         mask.setAttribute('aria-hidden', 'true');
         mask.classList.remove('ritual-out');
-      }, 320);
+      }, 380);
       after();
     };
-    setTimeout(finish, 1150);
+    timers.push(setTimeout(finish, 1480));
   }
 
   function doCalc() {
@@ -1192,17 +1253,15 @@
     });
   }
 
-  // 复制微信号
+  // 复制微信号（统一走带降级的 copyText，兼容 file:// 本地打开）
   const copyWxBtn = $('copyWxBtn');
   if (copyWxBtn) {
     copyWxBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(PAY.wechat).then(() => {
-        const old = copyWxBtn.textContent;
-        copyWxBtn.textContent = '已复制 ✓';
-        setTimeout(() => copyWxBtn.textContent = old, 1500);
-      }).catch(() => {
-        alert('微信号：' + PAY.wechat);
-      });
+      const old = copyWxBtn.textContent;
+      copyText(PAY.wechat,
+        () => { copyWxBtn.textContent = '已复制 ✓'; setTimeout(() => copyWxBtn.textContent = old, 1500); },
+        () => { alert('微信号：' + PAY.wechat); }
+      );
     });
   }
 

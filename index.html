@@ -19,7 +19,7 @@
   <meta property="og:image" content="https://bz-hepan.github.io/assets/og-image.png" />
   <meta property="og:url" content="https://bz-hepan.github.io/" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-  <link rel="stylesheet" href="css/style.css?v=14" />
+  <link rel="stylesheet" href="css/style.css?v=15" />
 </head>
 <body>
   <div class="bg-orbs">
@@ -33,12 +33,25 @@
     <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
   </div>
 
-  <!-- 合盘仪式过场 -->
+  <!-- 合盘仪式过场：古风罗盘 -->
   <div id="ritual" class="ritual-mask" hidden aria-hidden="true">
-    <div class="ritual-inner">
-      <div class="ritual-ring"></div>
-      <div class="ritual-glyph">缘</div>
-      <div class="ritual-text">正在推演你们的缘分…</div>
+    <div class="ritual-stage">
+      <div class="rt-halo"></div>
+      <svg class="rt-dial" viewBox="0 0 240 240" aria-hidden="true">
+        <g class="rt-scale">
+          <circle cx="120" cy="120" r="112" class="rt-ring-out" />
+          <circle cx="120" cy="120" r="100" class="rt-ring-in" />
+        </g>
+        <g class="rt-branch"></g>
+      </svg>
+      <div class="rt-core">
+        <div class="rt-lotus"></div>
+        <div class="rt-glyph">缘</div>
+      </div>
+      <div class="rt-caption">
+        <div class="rt-step" id="ritualStep">正在排布四柱…</div>
+        <div class="rt-track"><i class="rt-fill" id="ritualFill"></i></div>
+      </div>
     </div>
   </div>
 
@@ -419,6 +432,6 @@
 
   <script src="lib/lunar.js?v=2"></script>
   <script src="js/bazi.js?v=6"></script>
-  <script src="js/app.js?v=14"></script>
+  <script src="js/app.js?v=15"></script>
 </body>
 </html>

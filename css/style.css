@@ -871,7 +871,7 @@ input:focus, select:focus {
 }
 @media (prefers-reduced-motion: reduce) {
   .deep-badge, .modal-card { animation: none; }
-  .petal-layer, .petal-layer i, .ritual-ring, .ritual-glyph { animation: none !important; }
+  .petal-layer, .petal-layer i, .rt-halo, .rt-scale, .rt-branch, .rt-lotus, .rt-glyph, .rt-fill { animation: none !important; }
 }
 
 /* ============================================================
@@ -905,49 +905,70 @@ input:focus, select:focus {
   100% { transform: translate3d(60px, 110vh, 0) rotate(420deg); opacity: 0; }
 }
 
-/* 合盘过场遮罩 */
+/* 合盘过场：古风罗盘 */
 .ritual-mask {
   position: fixed; inset: 0; z-index: 80;
   display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(circle at 50% 42%, rgba(255,250,253,.94) 0%, rgba(243,233,250,.96) 55%, rgba(230,238,250,.97) 100%);
-  backdrop-filter: blur(6px);
-  transition: opacity .32s ease;
+  background: radial-gradient(circle at 50% 44%, rgba(255,251,253,.96) 0%, rgba(246,238,252,.97) 52%, rgba(229,237,250,.985) 100%);
+  backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
+  transition: opacity .38s ease;
 }
 .ritual-mask.ritual-out { opacity: 0; }
-.ritual-inner { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
-.ritual-ring {
-  position: absolute; inset: 0; border-radius: 50%;
-  border: 2px dashed rgba(176,139,214,.55);
-  border-top-color: var(--pink-deep);
-  border-right-color: var(--gold);
-  animation: ritualSpin 2.4s linear infinite;
+.ritual-stage { position: relative; width: 260px; height: 290px; }
+
+/* 中心柔光 */
+.rt-halo {
+  position: absolute; top: 120px; left: 50%; width: 214px; height: 214px;
+  margin: -107px 0 0 -107px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(247,168,196,.30) 0%, rgba(176,139,214,.16) 46%, transparent 72%);
+  filter: blur(5px);
+  animation: rtBreathe 2s ease-in-out infinite;
 }
-.ritual-ring::before, .ritual-ring::after {
-  content: ''; position: absolute; border-radius: 50%;
+
+/* 罗盘本体 */
+.rt-dial { position: absolute; top: 0; left: 50%; width: 240px; height: 240px; transform: translateX(-50%); overflow: visible; pointer-events: none; }
+.rt-scale { transform-box: view-box; transform-origin: 50% 50%; animation: rtSpin 22s linear infinite; }
+.rt-branch { transform-box: view-box; transform-origin: 50% 50%; animation: rtSpin 30s linear infinite reverse; }
+.rt-ring-out { fill: none; stroke: rgba(124,91,191,.36); stroke-width: 1; }
+.rt-ring-in  { fill: none; stroke: rgba(226,85,143,.24); stroke-width: 1; stroke-dasharray: 2 7; }
+.rt-tick { stroke: rgba(176,139,214,.45); stroke-width: 1; }
+.rt-tick.major { stroke: var(--gold); stroke-width: 1.7; }
+.rt-branch-t { fill: var(--purple-deep); font-size: 12.5px; font-family: var(--font-cn); opacity: .88; }
+
+/* 中心莲花 + 缘字 */
+.rt-core { position: absolute; top: 120px; left: 50%; width: 96px; height: 96px; transform: translate(-50%, -50%); }
+.rt-lotus { position: absolute; inset: 0; animation: rtSpin 18s linear infinite; }
+.rt-lotus i {
+  position: absolute; left: 50%; top: 50%; width: 26px; height: 42px;
+  margin: -42px 0 0 -13px; transform-origin: 50% 42px;
+  background: linear-gradient(180deg, rgba(247,168,196,.52), rgba(176,139,214,.12));
+  border: 1px solid rgba(226,85,143,.26);
+  border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
 }
-.ritual-ring::before { inset: 14px; border: 1px solid rgba(226,85,143,.28); border-left-color: var(--pink-deep); animation: ritualSpin 1.6s linear infinite reverse; }
-.ritual-ring::after  { inset: 30px; border: 1px dotted rgba(217,178,90,.4); animation: ritualSpin 3s linear infinite; }
-.ritual-glyph {
-  position: relative; z-index: 1;
-  font-family: var(--font-cn); font-size: 76px; font-weight: 700;
+.rt-glyph {
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-cn); font-size: 54px; font-weight: 700;
   background: linear-gradient(135deg, var(--purple-deep), var(--pink-deep), var(--gold));
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: ritualPulse 1.2s ease-in-out infinite;
+  animation: rtPulse 1.5s ease-in-out infinite;
 }
-.ritual-text {
-  position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
-  white-space: nowrap; font-size: 14px; letter-spacing: 2px; color: var(--ink-soft);
-  font-family: var(--font-cn);
-}
-@keyframes ritualSpin { to { transform: rotate(360deg); } }
-@keyframes ritualPulse { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
+
+/* 分阶段文案 + 进度 */
+.rt-caption { position: absolute; bottom: 4px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.rt-step { font-size: 13.5px; letter-spacing: 2.5px; color: var(--ink-soft); font-family: var(--font-cn); white-space: nowrap; }
+.rt-track { width: 152px; height: 3px; border-radius: 3px; background: rgba(176,139,214,.20); overflow: hidden; }
+.rt-fill { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--purple), var(--pink-deep), var(--gold)); animation: rtFill 1.48s ease-out forwards; }
+
+@keyframes rtSpin { to { transform: rotate(360deg); } }
+@keyframes rtPulse { 0%,100% { transform: scale(1); opacity: .92; } 50% { transform: scale(1.09); opacity: 1; } }
+@keyframes rtBreathe { 0%,100% { transform: scale(.92); opacity: .68; } 50% { transform: scale(1.08); opacity: 1; } }
+@keyframes rtFill { from { width: 0; } to { width: 100%; } }
 
 /* 小屏适配 */
 @media (max-width: 640px) {
   .petal-layer i { width: 9px; height: 9px; }
-  .ritual-inner { width: 170px; height: 170px; }
-  .ritual-glyph { font-size: 60px; }
-  .ritual-text { font-size: 12.5px; }
+  .ritual-stage { transform: scale(.84); }
 }
 
 /* ===== 未来三年流年时间轴 ===== */

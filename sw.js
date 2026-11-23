@@ -2,12 +2,12 @@
  * 策略：核心静态资源预缓存 + 网络优先（联网拿新版，断网用缓存）
  * 注意：缓存版本 changes 时把 CACHE 名字里的数字 +1，旧缓存会自动清理。
  */
-const CACHE = 'yuanfen-v7';
+const CACHE = 'yuanfen-v8';
 const CORE = [
   './',
   './index.html',
-  './css/style.css?v=14',
-  './js/app.js?v=14',
+  './css/style.css?v=15',
+  './js/app.js?v=15',
   './js/bazi.js?v=6',
   './lib/lunar.js?v=2',
   './assets/bg-gukou.svg',
