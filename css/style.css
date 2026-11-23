@@ -104,6 +104,37 @@ body {
 }
 .disclaimer-top { color: var(--ink-soft); font-size: 12px; margin-top: 12px; opacity: 0.62; }
 
+/* 顶部标题区 · 星点漂浮 */
+.hdr-sparks { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.hdr-sparks i {
+  position: absolute; display: block; border-radius: 50%;
+  filter: drop-shadow(0 0 4px currentColor);
+  opacity: 0; animation: hdrFloat 3.6s ease-in-out infinite;
+}
+/* 标题外三层星轨 */
+.hdr-orbit { position: absolute; left: 50%; top: 56px; width: 200px; height: 200px; margin-left: -100px; pointer-events: none; z-index: 0; }
+.hdr-orbit i {
+  position: absolute; border-radius: 50%; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.hdr-orbit i:nth-child(1) { width: 150px; height: 150px; border: 1px dashed rgba(226,85,143,.18); animation: rtSpin 34s linear infinite; }
+.hdr-orbit i:nth-child(2) { width: 186px; height: 186px; border: 1px dotted rgba(217,178,90,.2); animation: rtSpin 48s linear infinite reverse; }
+.hdr-orbit i:nth-child(3) {
+  width: 6px; height: 6px; background: var(--pink-deep); box-shadow: 0 0 10px var(--pink-deep);
+  top: 0; left: 50%; margin-left: -3px; transform-origin: 3px 100px; animation: rtSpin 12s linear infinite;
+}
+/* 标题字：极轻的呼吸，不改渐变结构 */
+.site-header h1 { animation: hdrTitleBreathe 5s ease-in-out infinite; }
+@keyframes hdrFloat {
+  0%, 100% { opacity: 0; transform: translateY(8px) scale(.6); }
+  35% { opacity: .85; transform: translateY(-4px) scale(1); }
+  65% { opacity: .5; transform: translateY(-12px) scale(.85); }
+}
+@keyframes hdrTitleBreathe {
+  0%, 100% { filter: drop-shadow(0 2px 6px rgba(255,255,255,.85)); }
+  50% { filter: drop-shadow(0 2px 10px rgba(226,85,143,.28)) drop-shadow(0 0 20px rgba(176,139,214,.18)); }
+}
+
 .container { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 16px 20px 70px; }
 
 /* ===== 输入区 ===== */
@@ -780,6 +811,42 @@ input:focus, select:focus {
 }
 .unlock-btn:hover { animation: none; }
 
+/* 深度解锁区 · 入场与呼吸动效 */
+.deep-locked { animation: dlEnter .55s ease-out both; }
+.deep-locked .deep-toc li {
+  opacity: 0; animation: dlRowIn .45s ease-out forwards;
+}
+.deep-locked .deep-toc li:nth-child(1) { animation-delay: .10s; }
+.deep-locked .deep-toc li:nth-child(2) { animation-delay: .15s; }
+.deep-locked .deep-toc li:nth-child(3) { animation-delay: .20s; }
+.deep-locked .deep-toc li:nth-child(4) { animation-delay: .25s; }
+.deep-locked .deep-toc li:nth-child(5) { animation-delay: .30s; }
+.deep-locked .deep-toc li:nth-child(6) { animation-delay: .35s; }
+.deep-locked .deep-toc li:nth-child(7) { animation-delay: .40s; }
+.deep-locked .deep-toc li:nth-child(8) { animation-delay: .45s; }
+.deep-locked .deep-toc li:nth-child(9) { animation-delay: .50s; }
+.deep-locked .deep-toc li:nth-child(n+10) { animation-delay: .55s; }
+.deep-pair-token { animation: dlTokenGlow 3.4s ease-in-out infinite; }
+.deep-preview-mask span { animation: dlLockPulse 2.2s ease-in-out infinite; }
+/* 解锁按钮流光扫过（叠加在呼吸光晕之上） */
+.unlock-btn { position: relative; overflow: hidden; }
+.unlock-btn::after {
+  content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent);
+  transform: skewX(-20deg); animation: dlSheen 3.2s ease-in-out infinite;
+}
+@keyframes dlEnter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dlRowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes dlTokenGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(226,85,143,0); }
+  50% { box-shadow: 0 0 16px rgba(226,85,143,.22); }
+}
+@keyframes dlLockPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes dlSheen { 0%, 62% { left: -60%; } 88%, 100% { left: 130%; } }
+
 /* ===== 深度报告 · 新增章节 ===== */
 .du-intro { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin: -8px 0 18px; line-height: 1.7; }
 .du-need { font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.6; }
@@ -844,6 +911,11 @@ input:focus, select:focus {
   .site-header { padding: 40px 16px 6px; }
   .site-header h1 { font-size: 30px; letter-spacing: 4px; }
   .site-header::before { width: 84px; height: 84px; line-height: 84px; font-size: 52px; top: 12px; }
+  .hdr-orbit { top: 40px; width: 150px; height: 150px; margin-left: -75px; }
+  .hdr-orbit i:nth-child(1) { width: 112px; height: 112px; }
+  .hdr-orbit i:nth-child(2) { width: 142px; height: 142px; }
+  .hdr-orbit i:nth-child(3) { transform-origin: 3px 75px; }
+  .deep-preview-mask span, .unlock-btn::after { animation-duration: 2.6s; }
   .container { padding-left: 12px; padding-right: 12px; padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
   .score-hero { justify-content: center; text-align: center; }
   .insight-personas { flex-direction: column; gap: 8px; }
@@ -871,7 +943,11 @@ input:focus, select:focus {
 }
 @media (prefers-reduced-motion: reduce) {
   .deep-badge, .modal-card { animation: none; }
-  .petal-layer, .petal-layer i, .rt-halo, .rt-scale, .rt-branch, .rt-lotus, .rt-glyph, .rt-fill { animation: none !important; }
+  .petal-layer, .petal-layer i, .rt-halo, .rt-scale, .rt-branch, .rt-lotus, .rt-glyph, .rt-fill,
+  .rt-spark-track, .rt-spark-dot, .hdr-sparks i, .hdr-orbit i, .site-header h1,
+  .deep-locked, .deep-locked .deep-toc li, .deep-pair-token, .deep-preview-mask span,
+  .unlock-btn, .unlock-btn::after { animation: none !important; }
+  .deep-locked .deep-toc li { opacity: 1 !important; }
 }
 
 /* ============================================================
@@ -960,10 +1036,12 @@ input:focus, select:focus {
 .rt-track { width: 152px; height: 3px; border-radius: 3px; background: rgba(176,139,214,.20); overflow: hidden; }
 .rt-fill { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--purple), var(--pink-deep), var(--gold)); animation: rtFill 1.48s ease-out forwards; }
 
+.rt-spark-dot { filter: drop-shadow(0 0 2px currentColor); }
 @keyframes rtSpin { to { transform: rotate(360deg); } }
 @keyframes rtPulse { 0%,100% { transform: scale(1); opacity: .92; } 50% { transform: scale(1.09); opacity: 1; } }
 @keyframes rtBreathe { 0%,100% { transform: scale(.92); opacity: .68; } 50% { transform: scale(1.08); opacity: 1; } }
 @keyframes rtFill { from { width: 0; } to { width: 100%; } }
+@keyframes rtTwinkle { 0%,100% { opacity: .28; } 50% { opacity: 1; } }
 
 /* 小屏适配 */
 @media (max-width: 640px) {

@@ -1048,6 +1048,57 @@
       }
       lotus.dataset.built = '1';
     }
+    // 星轨：两条轨道上的光点，沿圆周转，带明暗闪烁
+    const sparks = document.querySelector('.rt-sparks');
+    if (sparks && !sparks.dataset.built) {
+      const cfg = [
+        { r: 74, n: 5, size: 2.4, dur: 9, dir: 1, col: '#e2558f' },
+        { r: 92, n: 7, size: 1.8, dur: 13, dir: -1, col: '#d9b25a' }
+      ];
+      cfg.forEach((track, ti) => {
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('class', 'rt-spark-track');
+        g.style.transformOrigin = '120px 120px';
+        g.style.animation = `rtSpin ${track.dur}s linear infinite${track.dir < 0 ? ' reverse' : ''}`;
+        for (let i = 0; i < track.n; i++) {
+          const a = (i * (360 / track.n)) * Math.PI / 180;
+          const c = document.createElementNS(NS, 'circle');
+          c.setAttribute('cx', (120 + track.r * Math.cos(a)).toFixed(2));
+          c.setAttribute('cy', (120 + track.r * Math.sin(a)).toFixed(2));
+          c.setAttribute('r', track.size);
+          c.setAttribute('fill', track.col);
+          c.setAttribute('class', 'rt-spark-dot');
+          c.style.opacity = (0.45 + (i % 3) * 0.2).toFixed(2);
+          c.style.animation = `rtTwinkle ${(1.2 + (i % 4) * 0.35).toFixed(2)}s ease-in-out ${(i * 0.18).toFixed(2)}s infinite`;
+          g.appendChild(c);
+        }
+        sparks.appendChild(g);
+      });
+      sparks.dataset.built = '1';
+    }
+  }
+
+  // 顶部标题区：漂浮星点（纯装饰，加载即生成一次）
+  function buildHeaderSparks() {
+    const box = document.querySelector('.hdr-sparks');
+    if (!box || box.dataset.built) return;
+    const positions = [
+      [12, 30, 3, '#e2558f'], [22, 68, 2, '#d9b25a'], [34, 18, 2.4, '#b08bd6'],
+      [66, 24, 2.2, '#d9b25a'], [80, 60, 3, '#e2558f'], [88, 26, 2, '#b08bd6'],
+      [50, 82, 2.2, '#e2558f'], [8, 58, 1.8, '#b08bd6'], [70, 84, 1.8, '#d9b25a']
+    ];
+    positions.forEach((p, i) => {
+      const s = document.createElement('i');
+      s.style.left = p[0] + '%';
+      s.style.top = p[1] + '%';
+      s.style.width = s.style.height = p[2] + 'px';
+      s.style.background = p[3];
+      s.style.color = p[3];
+      s.style.animationDelay = (i * 0.37).toFixed(2) + 's';
+      s.style.animationDuration = (3 + (i % 4) * 0.6).toFixed(2) + 's';
+      box.appendChild(s);
+    });
+    box.dataset.built = '1';
   }
 
   // 合盘仪式过场：先算好数据，播完动画再渲染，算法不受影响
@@ -1297,6 +1348,7 @@
     if (mood) document.body.classList.add(mood);
   }
   applySeasonalMood();
+  buildHeaderSparks();
 
   // ===== PWA：注册 Service Worker（仅 https / localhost 生效，file:// 下静默跳过）=====
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
