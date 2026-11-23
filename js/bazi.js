@@ -245,8 +245,29 @@
       elementCounts,
       distinctElements: distinct,
       personality,
+      birthYear: y,
+      birthMonth: m,
+      birthDay: d,
       naYin: pillars.map(p => p.naYin)
     };
+  }
+
+  // —— 双人称呼：两人同生肖时不再都叫「×方」，改用日主/年/月日区分，避免混淆 ——
+  // 返回 [称呼A, 称呼B]，保证两者不同；只在必要时才加限定，尽量保持简洁。
+  function pairNames(a, b) {
+    const baseA = a.zodiac, baseB = b.zodiac;
+    if (baseA !== baseB) return [baseA + '方', baseB + '方'];
+    // 同生肖：先用日主天干区分（如「壬方」「甲方」）
+    if (a.dayMaster !== b.dayMaster) return [a.dayMaster + '方', b.dayMaster + '方'];
+    // 同生肖同日主：用出生年份后两位（如「94方」「98方」）
+    const ya = String(a.birthYear || '').slice(-2), yb = String(b.birthYear || '').slice(-2);
+    if (ya !== yb) return [ya + '方', yb + '方'];
+    // 连年份都一样：用月日（如「0615方」「0308方」）
+    const ma = String(a.birthMonth || '').padStart(2, '0') + String(a.birthDay || '').padStart(2, '0');
+    const mb = String(b.birthMonth || '').padStart(2, '0') + String(b.birthDay || '').padStart(2, '0');
+    if (ma !== mb) return [ma + '方', mb + '方'];
+    // 极端：同一天生日不同时辰，直接用「先 / 后」区分
+    return ['先到方', '后到方'];
   }
 
   function personalityOf(gan) {
@@ -299,25 +320,30 @@
 
   function scoreZodiac(a, b) {
     const za = a.yearZhi, zb = b.yearZhi;
+    // 同生肖时不再写「生肖×与×」，改写成同属的表达
+    const sameZodiac = a.zodiac === b.zodiac;
+    const zPair = sameZodiac ? `你俩同属${a.zodiac}` : `生肖${a.zodiac}与${b.zodiac}`;
     let score, label, text;
     if (isLiuHe(za, zb)) {
       score = 12; label = '天作六合';
-      text = `生肖${a.zodiac}与${b.zodiac}为「六合」——这是十二地支里最深的投缘。你们几乎不需刻意经营，气场自会替你们说话：一起吃饭、逛街、说些有的没的都顺得不得了；即便相对无言也不尴尬，因为彼此的频率本就同频。这种默契像呼吸一样自然，是旁人羡慕不来的合拍。`;
+      text = `${zPair}为「六合」——这是十二地支里最深的投缘。你们几乎不需刻意经营，气场自会替你们说话：一起吃饭、逛街、说些有的没的都顺得不得了；即便相对无言也不尴尬，因为彼此的频率本就同频。这种默契像呼吸一样自然，是旁人羡慕不来的合拍。`;
     } else if (inSameSanHe(za, zb)) {
       score = 10; label = '三合助力';
-      text = `生肖${a.zodiac}与${b.zodiac}同落「三合」局，气场互相托举。相处里你们像被同一股运势推着走，做事容易成、说话容易懂；哪怕各自忙一阵， reconnect 时也毫无隔阂。这样的组合适合一起做长期的事，越养越厚。`;
+      text = `${zPair}同落「三合」局，气场互相托举。相处里你们像被同一股运势推着走，做事容易成、说话容易懂；哪怕各自忙一阵， reconnect 时也毫无隔阂。这样的组合适合一起做长期的事，越养越厚。`;
     } else if (isLiuChong(za, zb)) {
       score = 2; label = '六冲相激';
-      text = `生肖${a.zodiac}与${b.zodiac}「六冲」，节奏与频率常对撞。你们需要更多包容与沟通——不是不能好，而是得有人主动放缓脚步等对方。争执时记得先各退半步，化火药为火花。`;
+      text = `${zPair}「六冲」，节奏与频率常对撞。你们需要更多包容与沟通——不是不能好，而是得有人主动放缓脚步等对方。争执时记得先各退半步，化火药为火花。`;
     } else if (isSanXing(za, zb)) {
       score = 3; label = '略有刑克';
-      text = `生肖${a.zodiac}与${b.zodiac}存在「相刑」，细节上易有摩擦。某些旧账或心结容易被勾起，建议有事敞开说、别憋着；磨合顺了，这点刑克反倒成了关系的“记忆点”。`;
+      text = `${zPair}存在「相刑」，细节上易有摩擦。某些旧账或心结容易被勾起，建议有事敞开说、别憋着；磨合顺了，这点刑克反倒成了关系的“记忆点”。`;
     } else if (isLiuHai(za, zb)) {
       score = 5; label = '六害牵绊';
-      text = `生肖${a.zodiac}与${b.zodiac}「六害」，缘分中带着牵绊。你们需要更用心经营才不会渐行渐远——多制造共同经历、少留冷战的空白，感情就有锚点。`;
+      text = `${zPair}「六害」，缘分中带着牵绊。你们需要更用心经营才不会渐行渐远——多制造共同经历、少留冷战的空白，感情就有锚点。`;
     } else {
       score = 8; label = '平淡相安';
-      text = `生肖${a.zodiac}与${b.zodiac}无特殊合冲，相处平稳自然。感情靠日常点滴慢慢累积：一顿饭、一段话、一次并肩，都能把平淡熬出甜味。`;
+      text = sameZodiac
+        ? `你俩同属${a.zodiac}，属相上既不相冲也不相合，相处平稳自然——少了戏剧化的牵引，反倒靠日常点滴慢慢累积：一顿饭、一段话、一次并肩，都能把平淡熬出甜味。`
+        : `生肖${a.zodiac}与${b.zodiac}无特殊合冲，相处平稳自然。感情靠日常点滴慢慢累积：一顿饭、一段话、一次并肩，都能把平淡熬出甜味。`;
     }
     return { score, max: 12, label, text };
   }
@@ -718,6 +744,7 @@
 
   function fortuneYears(a, b, pa, pb) {
     const thisYear = new Date().getFullYear();
+    const [na, nb] = pairNames(a, b);
     const aDayZhi = a.pillars[2].zhi;
     const bDayZhi = b.pillars[2].zhi;
     const list = [];
@@ -734,16 +761,16 @@
       const aNote = zhiRelation(zhi, aDayZhi);
       const bNote = zhiRelation(zhi, bDayZhi);
       const notes = [];
-      if (aNote) notes.push(`${a.zodiac}方：${aNote}`);
-      if (bNote) notes.push(`${b.zodiac}方：${bNote}`);
+      if (aNote) notes.push(`${na}：${aNote}`);
+      if (bNote) notes.push(`${nb}：${bNote}`);
 
       let level, levelText, relation;
       if (aFav && bFav) {
         level = '顺遂'; levelText = '双喜顺势';
         relation = '流年五行同时补到两个人的喜用，是难得的「一起变好」之年——想推进的关系大事，今年做最省力。';
       } else if (aFav || bFav) {
-        const favWho = aFav ? a.zodiac : b.zodiac;
-        const calmWho = aFav ? b.zodiac : a.zodiac;
+        const favWho = aFav ? na : nb;
+        const calmWho = aFav ? nb : na;
         level = '平稳'; levelText = '一暖一缓';
         relation = `这一年${favWho}方更顺势、状态更亮，${calmWho}方偏平缓。顺的一方主动带动，缓的一方安心接住，节奏就不容易错开。`;
       } else {
@@ -773,7 +800,6 @@
   // —— 关系类型专属解读（恋人 / 闺蜜 / 搭档 / 其他）——
   function relationFocus(a, b, pa, pb, res, rel) {
     const kind = ['恋人', '闺蜜', '搭档'].indexOf(rel) >= 0 ? rel : '其他';
-    const aName = a.zodiac + '方', bName = b.zodiac + '方';
     const strong = res.total >= 68, mid = res.total >= 45;
     const lib = {
       恋人: {
@@ -818,8 +844,10 @@
   }
 
   // —— 冲突现场还原：从冷战到和好的完整流程 ——
+  // 两人属性相同时改为「同频」叙述，不再把同一句话重复两遍。
   function conflictFlow(a, b, pa, pb, res) {
     const d = res.dimensions;
+    const [na, nb] = pairNames(a, b);
     const clash = d.zhi.label.includes('冲') || d.wuxing.label.includes('相克') || d.gan.label.includes('相制');
     const coolA = pa.strength === '偏旺' ? '先冷着、把话憋在心里' : '当场不吭声、事后反复想';
     const coolB = pb.strength === '偏旺' ? '先冷着、把话憋在心里' : '当场不吭声、事后反复想';
@@ -827,40 +855,64 @@
       ? '一个玩笑或一句软话破冰' : '默默做点实事（倒杯水、把事办好）当台阶';
     const returnB = pb.tenGods === '食伤' || pb.tenGods === '火'
       ? '一个玩笑或一句软话破冰' : '默默做点实事（倒杯水、把事办好）当台阶';
+
+    // 冷静方式：相同 → 同频叙述；不同 → 分别叙述
+    const coldSame = coolA === coolB;
+    const coldText = coldSame
+      ? `你俩在这一点上是同频的——都是「${coolA}」的类型。同频的好处是彼此懂那个沉默不是在赌气；麻烦是两个人都憋着时，谁也不会先出声。所以约好：谁先缓过来，谁先开个头，不用等对方。`
+      : `${na}多是「${coolA}」，${nb}多是「${coolB}」。这半拍到半天的冷却期不是坏事，别急着在这时候讲道理——先各自待着，情绪过了头再谈。`;
+
+    // 和好方式：相同 → 同频叙述；不同 → 分别叙述
+    const returnSame = returnA === returnB;
+    const returnText = returnSame
+      ? `在和好这件事上你们出奇一致——都偏向「${returnA}」。好处是台阶的样子彼此都认得；但两个人都用同一种方式、都在等对方先递时，就容易僵住。认出信号之后，谁方便谁先来，别把「谁先低头」当成输赢。`
+      : `和好的方式也不同：${na}偏向「${returnA}」，${nb}偏向「${returnB}」。认出对方的和好信号很重要——她递台阶时，就顺着下，别追着问「你到底错在哪」。`;
+
     return {
       start: clash
         ? '你们的分歧往往来得挺快：一个观点鲜明不肯让，另一个也有主意，几句话不合就上头。导火索常常不是那件事本身，而是「你那语气」。'
         : '你们平日里不太容易吵起来，真有分歧时更像是突然的沉默——谁都不想先破坏气氛，于是话都憋着。',
-      cold: `${a.zodiac}方多是「${coolA}」，${b.zodiac}方多是「${coolB}」。这半拍到半天的冷却期不是坏事，别急着在这时候讲道理——先各自待着，情绪过了头再谈。`,
-      return: `和好的方式也不同：${a.zodiac}方偏向「${returnA}」，${b.zodiac}方偏向「${returnB}」。认出对方的和好信号很重要——她递台阶时，就顺着下，别追着问「你到底错在哪」。`,
+      cold: coldText,
+      return: returnText,
       rule: '给你们定一条通用规矩：吵完 24 小时内，无论谁对谁错，先说一句「我不是想跟你吵」。这句不是认输，是把关系从对立里捞出来——冷战的伤害，往往比那件事本身大得多。'
     };
   }
 
   // —— 一起做事的场景模拟（挑 3 个最贴合命盘的组合）——
+  // 两人同类属性不硬凑「一个这样、一个那样」，改写成同频场景。
   function lifeScenes(a, b, pa, pb, res) {
     const d = res.dimensions;
+    const [na, nb] = pairNames(a, b);
+    const paPlan = pa.tenGods === '财' || pa.tenGods === '官杀';
+    const pbPlan = pb.tenGods === '财' || pb.tenGods === '官杀';
+    const travelSame = paPlan === pbPlan;
+    const nightYangSame = a.dayMasterYinYang === b.dayMasterYinYang;
+    const needA = pa.need.replace('最需要的是', '').replace(/[「」]/g, '').replace(/，$/, '');
+    const needB = pb.need.replace('最需要的是', '').replace(/[「」]/g, '').replace(/，$/, '');
+    const needSame = needA === needB;
+    const moneySame = (pa.tenGods === '财') === (pb.tenGods === '财');
+
+    const travelText = travelSame
+      ? `${d.zhi.label.includes('合') || d.zodiac.label.includes('合') ? '你们的地支相合，一起出门的默契是加分项' : '一起出门是最容易看清彼此节奏的机会'}：你俩在计划这件事上是同一路人——都偏「${paPlan ? '提前把行程排得妥妥的' : '随性走走看看、临时起意'}」。同频让沟通省力，却也容易一起漏掉细节（比如都忘了订票、都没看天气）。出发前指定一个人专门盯「硬性安排」，另一个只管发现路边的小店，同频也能分工。`
+      : `${d.zhi.label.includes('合') || d.zodiac.label.includes('合') ? '你们的地支相合，一起出门的默契是加分项' : '一起出门是最容易看清彼此节奏的机会'}：${na}偏「${paPlan ? '提前把行程排得妥妥的' : '随性走走看看、临时起意'}」，${nb}偏「${pbPlan ? '喜欢有个明确计划' : '走到哪算哪、享受意外'}」。出发前先把「一定要去的点」和「随便逛逛的时间」分开，一个负责订票导航，一个负责发现路边的小店，各司其职最开心。`;
+
+    const nightText = nightYangSame
+      ? `深夜是你们最容易交心的时段。你俩都是${a.dayMasterYinYang === '阴' ? '心思细、夜里容易翻来覆去的类型，一句关心就能戳中' : '白天各自要强、夜深才肯卸下防备的类型'}——同频的时候聊起来特别深，但也可能两个人都闷着不说。这样的时刻别用来算旧账、聊压力，多讲点没用的废话和心里的软话——关系的温度，常常是在这些「不解决问题」的聊天里攒起来的。`
+      : `深夜是你们最容易交心的时段。${na}${a.dayMasterYinYang === '阴' ? '心思细、容易被一句关心戳中' : '白天要强，夜里才卸下防备'}，${nb}${b.dayMasterYinYang === '阴' ? '想得多、睡前最容易翻来覆去' : '嘴上不说，夜深时才肯讲真话'}。这样的时刻别用来算旧账、聊压力，多讲点没用的废话和心里的软话——关系的温度，常常是在这些「不解决问题」的聊天里攒起来的。`;
+
+    const sickText = needSame
+      ? `一方不舒服时，最能看出照顾的方式对不对。有意思的是，你俩需要的恰好是同一样东西——「${needA}」。这意味着你们照顾对方时容易照顾到点子上，因为自己想要的，往往也是她想要的。反倒要留意：两个人都需要同一种支持时，容易一起缺位，那就轮流做那个先开口问「你现在想要我怎么做」的人。`
+      : `一方不舒服时，最能看出照顾的方式对不对。${na}需要「${needA}」，${nb}需要「${needB}」。别用自己的方式硬套对方：想安静的就别一直追问，需要回应的就别晾着。照顾这件事，问一句「你现在想要我怎么做」，比自作主张周到得多。`;
+
+    const moneyText = moneySame
+      ? `一起花钱、一起做计划时，你俩在钱上是同一类——都偏「${pa.tenGods === '财' ? '有账算得清楚的务实派' : '差不多就行、不太计较'}」。同类最省摩擦，但也有共同的坑：${pa.tenGods === '财' ? '两个人都想拿主意时容易较劲' : '两个人都随性时容易一起月光'}。大额支出先说好各自的比例和底线，小额就别一笔笔算——把规则定在前面，感情里就少很多算计的委屈。`
+      : `一起花钱、一起做计划时，${na}偏「${pa.tenGods === '财' ? '有账算得很清楚的务实派' : '差不多就行、不太计较'}」，${nb}偏「${pb.tenGods === '财' ? '把钱花在刀刃上的计划派' : '随性、够用就好'}」。差异本身不是问题，藏着不说才是。大额支出先说好各自的比例和底线，小额就别一笔笔算——把规则定在前面，感情里就少很多算计的委屈。`;
+
     const sceneLib = [
-      {
-        key: '一起旅行', icon: '🧳',
-        when: true,
-        text: `${d.zhi.label.includes('合') || d.zodiac.label.includes('合') ? '你们的地支相合，一起出门的默契是加分项' : '一起出门是最容易看清彼此节奏的机会'}：${a.zodiac}方偏「${pa.tenGods === '财' || pa.tenGods === '官杀' ? '提前把行程排得妥妥的' : '随性走走看看、临时起意'}」，${b.zodiac}方偏「${pb.tenGods === '财' || pb.tenGods === '官杀' ? '喜欢有个明确计划' : '走到哪算哪、享受意外'}」。出发前先把「一定要去的点」和「随便逛逛的时间」分开，一个负责订票导航，一个负责发现路边的小店，各司其职最开心。`
-      },
-      {
-        key: '深夜聊天', icon: '🌙',
-        when: true,
-        text: `深夜是你们最容易交心的时段。${a.zodiac}方${pa.dayMasterYinYang === '阴' ? '心思细、容易被一句关心戳中' : '白天要强，夜里才卸下防备'}，${b.zodiac}方${pb.dayMasterYinYang === '阴' ? '想得多、睡前最容易翻来覆去' : '嘴上不说，夜深时才肯讲真话'}。这样的时刻别用来算旧账、聊压力，多讲点没用的废话和心里的软话——关系的温度，常常是在这些「不解决问题」的聊天里攒起来的。`
-      },
-      {
-        key: '生病照顾', icon: '🩹',
-        when: true,
-        text: `一方不舒服时，最能看出照顾的方式对不对。${a.zodiac}方需要「${pa.need.replace('最需要的是', '').replace(/[「」]/g, '')}」，${b.zodiac}方需要「${pb.need.replace('最需要的是', '').replace(/[「」]/g, '')}」。别用自己的方式硬套对方：想安静的就别一直追问，需要回应的就别晾着。照顾这件事，问一句「你现在想要我怎么做」，比自作主张周到得多。`
-      },
-      {
-        key: '钱与计划', icon: '💰',
-        when: true,
-        text: `一起花钱、一起做计划时，${a.zodiac}方偏「${pa.tenGods === '财' ? '有账算得很清楚的务实派' : '差不多就行、不太计较'}」，${b.zodiac}方偏「${pb.tenGods === '财' ? '把钱花在刀刃上的计划派' : '随性、够用就好'}」。差异本身不是问题，藏着不说才是。大额支出先说好各自的比例和底线，小额就别一笔笔算——把规则定在前面，感情里就少很多算计的委屈。`
-      }
+      { key: '一起旅行', icon: '🧳', when: true, text: travelText },
+      { key: '深夜聊天', icon: '🌙', when: true, text: nightText },
+      { key: '生病照顾', icon: '🩹', when: true, text: sickText },
+      { key: '钱与计划', icon: '💰', when: true, text: moneyText }
     ];
     // 四个场景全给：一起旅行 / 深夜聊天 / 生病照顾 / 钱与计划
     return sceneLib.filter(s => s.when);
@@ -927,6 +979,7 @@
   // ============================================================
   function buildRichReport(a, b, res, pa, pb, rel) {
     const d = res.dimensions;
+    const [na, nb] = pairNames(a, b);
     const rateOf = (x) => x.score / x.max;
     const ranked = [
       { k: '生肖默契', v: d.zodiac },
@@ -952,15 +1005,17 @@
     const peach = (p) => p.pillars.filter(pl => ['子', '午', '卯', '酉'].includes(pl.zhi));
     const ca = peach(a).length, cb = peach(b).length;
     const taohuaRich = (ca && cb)
-      ? `双方四柱里都见桃花（${a.zodiac}方 ${ca} 处、${b.zodiac}方 ${cb} 处），这组关系的吸引力是双向且外显的：容易被彼此的气质、表达、甚至说话的方式打动，站在人群里也常被注意到。好处是心动感充足、不缺浪漫；要留意的是桃花旺的人对情绪格外敏感，一句没接住的玩笑可能被放大。把这份敏锐用在彼此身上——多回应、少晾着，火花就会一直温着，而不是烧完就散。`
+      ? `双方四柱里都见桃花（${na} ${ca} 处、${nb} ${cb} 处），这组关系的吸引力是双向且外显的：容易被彼此的气质、表达、甚至说话的方式打动，站在人群里也常被注意到。好处是心动感充足、不缺浪漫；要留意的是桃花旺的人对情绪格外敏感，一句没接住的玩笑可能被放大。把这份敏锐用在彼此身上——多回应、少晾着，火花就会一直温着，而不是烧完就散。`
       : (ca || cb)
-        ? `两人中有一方桃花较旺（${ca ? a.zodiac : b.zodiac}方命带 ${ca || cb} 处桃花），会把更多浪漫、仪式感与关注度带进关系：主动找话题、记得小日子、愿意制造惊喜。另一方不必勉强配合同样的浓度，安心接住、认真回应就很好。桃花偏弱的那一方更擅长把关系过成日常，这恰好是让心动落地的能力——一个负责点亮，一个负责守灯。`
+        ? `两人中有一方桃花较旺（${ca ? na : nb}命带 ${ca || cb} 处桃花），会把更多浪漫、仪式感与关注度带进关系：主动找话题、记得小日子、愿意制造惊喜。另一方不必勉强配合同样的浓度，安心接住、认真回应就很好。桃花偏弱的那一方更擅长把关系过成日常，这恰好是让心动落地的能力——一个负责点亮，一个负责守灯。`
         : `两人四柱桃花都偏少，感情不靠一时的来电，而靠「越了解越上头」。你们更可能从默契、可靠、被稳稳照顾的感觉里生出喜欢，起步慢一点，但一旦认定就很稳。建议主动给关系添一点新鲜感：换条路线散步、一起试件没做过的事，细水也能起涟漪。`;
 
     // —— 财运专项（我克者为财）——
     const caiWXa = KE[a.dayMasterWX], caiWXb = KE[b.dayMasterWX];
     const caiSum = (a.elementCounts[caiWXa] || 0) + (b.elementCounts[caiWXb] || 0);
-    const wealthRich = `以「我克者为财」来看，${a.zodiac}方财星属${caiWXa}、${b.zodiac}方财星属${caiWXb}，两人命盘合计见 ${caiSum} 处财气。`
+    const wealthRich = (caiWXa === caiWXb
+      ? `以「我克者为财」来看，你俩日主同属${a.dayMasterWX}，财星都落在「${caiWXa}」上——对「把日子过好」的向往是同一种，容易想到一块去。两人命盘合计见 ${caiSum} 处财气。`
+      : `以「我克者为财」来看，${na}财星属${caiWXa}、${nb}财星属${caiWXb}，两人命盘合计见 ${caiSum} 处财气。`)
       + (caiSum >= 3
         ? `财星两旺，你们对「把日子过好」这件事都有驱动力，一起规划小事业、共同储蓄或攒一笔旅行基金会很合拍。钱的话题在你们之间不该是禁忌：把预算摊开聊，反而比各自猜测更亲密。要留意的是两人都想拿主意时容易较劲，建议按「谁更擅长谁负责」分工，别在同一笔账上争主导权。`
         : caiSum === 2
@@ -976,15 +1031,29 @@
         : `事业上你们节奏接近、都不爱极端，一起做点什么会很合拍，问题往往不在能力而在角色重叠：两个人都想照顾全局，反而没人拍板。建议按各自日主的长处分工（${pa.wx}气偏「${pa.gan}」的踏实与生发，${pb.wx}气偏「${pb.gan}」的灵动与承接），把边界画出来，配合就顺了。`;
 
     // —— 五行调和（更具体的可执行清单）——
+    // 喜用相同时不再说「各有侧重 / 略有不同」这种自相矛盾的话。
+    const xiSame = pa.xiDesc === pb.xiDesc;
+    const xiLine = xiSame
+      ? `有意思的是，${na}和${nb}的喜用几乎一样（都${pa.xiDesc.replace(/^最需要的是/, '')}），要补的是同一味。一起往同一个方向使劲当然省力，但也容易两个人都缺在同一点上——这时该由一方主动换换口味，把另一方没意识到的部分带进来。`
+      : `${na}${pa.xiDesc}、${nb}${pb.xiDesc}，两人喜用各有侧重，选一起做的事时轮流迁就，比单方面配合更长久。`;
     const tuneRich = missingWX.length
       ? `两人四柱合起来偏缺「${missingWX.join('、')}」，气场里少了这几味的流动，相处上容易表现为：${missingWX.map(w => ({ 木: '不太会主动开新话题', 火: '情绪表达偏含蓄、热度起得慢', 土: '缺少落地的稳定感、计划容易悬着', 金: '边界与规则模糊、该断的事拖着', 水: '少一点松弛与变通、容易硬碰硬' }[w])).join('；')}。`
         + `不必紧张，命理讲「缺则可补」，生活里补比改性格容易得多：${missingWX.map(w => wxScene[w]).join('；')}。`
-        + `另外，${a.zodiac}方${pa.xiDesc}、${b.zodiac}方${pb.xiDesc}，两人喜用各有侧重，选一起做的事时轮流迁就，比单方面配合更长久。`
-      : `两人五行俱全，气场相对平衡，几乎不挑相处场景：热闹的聚会、安静的居家、需要协作的事都能接得住。这种组合不需要刻意「补什么」，更值得留意的是别把平衡过成平淡——定期一起试件没做过的事，让五种能量都流动起来。${a.zodiac}方${pa.xiDesc}、${b.zodiac}方${pb.xiDesc}，喜用略有不同，正好可以轮流挑约会主题，各带对方进一次自己的世界。`;
+        + xiLine
+      : `两人五行俱全，气场相对平衡，几乎不挑相处场景：热闹的聚会、安静的居家、需要协作的事都能接得住。这种组合不需要刻意「补什么」，更值得留意的是别把平衡过成平淡——定期一起试件没做过的事，让五种能量都流动起来。${xiLine}`;
 
     // —— 缘分深度长文（四段）——
+    // 日主/性格完全相同时不写「一个…一个…」的重复句，改写同频解读。
+    const toneLine = pa.tone === pb.tone
+      ? `两张盘最有趣的地方是「像」——${pa.tone}。这样的同频让你们特别懂彼此，但也意味着相似的坑会一起踩：真正要经营的不是「怎么磨合差异」，而是「怎么在相同里保持各自的新鲜」。`
+      : `一个${pa.tone}；一个${pb.tone}。这不是谁强谁弱，而是两张盘各自带着不同的季节出生，本来就该有不同的呼吸方式。`;
+    // 两人喜用成因相同时只写一次，避免同一句话重复两遍
+    const whyLine = pa.xiWhy === pb.xiWhy
+      ? (pa.xiWhy + '（你俩的喜用成因相同，这一点上特别同频。）')
+      : pa.xiWhy + pb.xiWhy;
+    const zPairLine = a.zodiac === b.zodiac ? `你俩同属${a.zodiac}` : `${a.zodiac}与${b.zodiac}`;
     const deepParas = [
-      `${a.zodiac}与${b.zodiac}的组合，${res.summary} 先把两张命盘摊开看：${a.zodiac}方日主${a.dayMaster}（${a.dayMasterWX}·${pa.strength}，${pa.xiDesc}），${b.zodiac}方日主${b.dayMaster}（${b.dayMasterWX}·${pb.strength}，${pb.xiDesc}）。${pa.xiWhy}${pb.xiWhy}一个${pa.tone}；一个${pb.tone}。这不是谁强谁弱，而是两张盘各自带着不同的季节出生，本来就该有不同的呼吸方式。`,
+      `${zPairLine}的组合，${res.summary} 先把两张命盘摊开看：${na}日主${a.dayMaster}（${a.dayMasterWX}·${pa.strength}，${pa.xiDesc}），${nb}日主${b.dayMaster}（${b.dayMasterWX}·${pb.strength}，${pb.xiDesc}）。${whyLine}${toneLine}`,
 
       `你们最亮的那一维是「${strongest.k}」（${strongest.v.score}/${strongest.v.max}，标签为「${strongest.v.label}」）。${strongest.v.text} 换句话说，这段关系里有个不需要费力维护的部分——它会自动替你们把日子托住。吵架、忙碌、隔了一阵没见，回头时靠的往往就是这块底色。生肖「${d.zodiac.label}」定下初见时的亲近感，天干「${d.gan.label}」决定彼此怎么表达，地支「${d.zhi.label}」则写进了日常里那些说不清的顺与别扭。`,
 
@@ -998,32 +1067,47 @@
     if (SHENG[a.dayMasterWX] === b.dayMasterWX || SHENG[b.dayMasterWX] === a.dayMasterWX) {
       const aGives = SHENG[a.dayMasterWX] === b.dayMasterWX;
       roles = {
-        a: aGives ? `${a.zodiac}方（${a.dayMasterWX}生${b.dayMasterWX}）更像「给的人」：习惯先照顾、先张罗、先把对方的情绪接住，付出得自然，也容易忘了自己也会累。` : `${a.zodiac}方是承接的一方：被照顾时懂得回应，也擅长把对方给的热度安放到具体的生活里。`,
-        b: aGives ? `${b.zodiac}方是承接的一方：被照顾时懂得回应，也擅长把对方给的热度安放到具体的生活里。` : `${b.zodiac}方（${b.dayMasterWX}生${a.dayMasterWX}）更像「给的人」：习惯先照顾、先张罗、先把对方的情绪接住，付出得自然，也容易忘了自己也会累。`,
+        a: aGives ? `${na}（${a.dayMasterWX}生${b.dayMasterWX}）更像「给的人」：习惯先照顾、先张罗、先把对方的情绪接住，付出得自然，也容易忘了自己也会累。` : `${na}是承接的一方：被照顾时懂得回应，也擅长把对方给的热度安放到具体的生活里。`,
+        b: aGives ? `${nb}是承接的一方：被照顾时懂得回应，也擅长把对方给的热度安放到具体的生活里。` : `${nb}（${b.dayMasterWX}生${a.dayMasterWX}）更像「给的人」：习惯先照顾、先张罗、先把对方的情绪接住，付出得自然，也容易忘了自己也会累。`,
         together: '相生的组合最怕「一边一直给、一边一直收」。建议每过一阵就换一次角色——让平时被照顾的人来安排一次约会、做一次决定，能量的流动才不会变成单方面的消耗。'
       };
     } else if (a.dayMasterWX === b.dayMasterWX) {
+      // 同为一行：不再两人各说一遍「照镜子」，改为一句同频总述 + 各自不同的落点
+      const sameWX = a.dayMasterWX;
+      const diffNote = pa.strength === pb.strength
+        ? `更巧的是你俩强弱也接近（都${pa.strength}），节奏几乎踩在一个点上——亲近是真亲近，较劲也容易较到一块去。`
+        : `细微的差别在强弱上：${na}${pa.strength}、${nb}${pb.strength}，同中有异，正好互为补给。`;
+      const mirrorLine = a.dayMasterYinYang === b.dayMasterYinYang
+        ? `连阴阳都相同（都属${a.dayMasterYinYang}），你俩几乎是同一块料子雕出来的——默契到不用解释，也意味着盲点高度重合。这份「像」最该警惕的，是两个人一起错还都觉得有理，所以身边有个敢说真话的朋友，反而珍贵。`
+        : `底色相近，但${na}偏${a.dayMasterYinYang}、${nb}偏${b.dayMasterYinYang}——同一块料子，照出的角度仍不同。认出这份「像里的不像」，比追求完全一致更有意思。`;
       roles = {
-        a: `${a.zodiac}方与对方同为${a.dayMasterWX}气，思维、节奏、在意的事都很像，好处是「不用说就懂」，坏处是容易一起钻同一个牛角尖。`,
-        b: `${b.zodiac}方同样带着${b.dayMasterWX}气的底色，你们照镜子似的彼此熟悉，却也少了一点互补带来的新鲜感。`,
+        a: `你俩日主同属${sameWX}，思维、节奏、在意的事都很像，好处是「不用说就懂」，坏处是容易一起钻同一个牛角尖。${diffNote}`,
+        b: mirrorLine,
         together: '同气组合最适合「各留一块自留地」：各自保有一个不重叠的爱好或圈子，回来才有话可聊。遇到分歧时，别指望对方自动唱反调，得有人主动扮演那个提不同意见的人。'
       };
     } else {
       roles = {
-        a: `${a.zodiac}方日主${a.dayMaster}（${a.dayMasterWX}）与对方形成相制，习惯用自己的方式推进事情，观点鲜明、不太肯含糊。`,
-        b: `${b.zodiac}方日主${b.dayMaster}（${b.dayMasterWX}）同样有主张，两人碰在一起不会无聊，但也容易在同一件事上较劲。`,
+        a: `${na}日主${a.dayMaster}（${a.dayMasterWX}）与对方形成相制，习惯用自己的方式推进事情，观点鲜明、不太肯含糊。`,
+        b: `${nb}日主${b.dayMaster}（${b.dayMasterWX}）同样有主张，两人碰在一起不会无聊，但也容易在同一件事上较劲。`,
         together: '相制不是相克到底，而是「彼此磨出边界」。建议把决策按领域切开：各自最在意的那一块由本人拍板，交叉的事再一起商量。吵完记得补一句「我不是针对你」，这句比讲道理管用。'
       };
     }
 
-    // —— 情绪与相处节奏 ——
-    const rhythm = {
-      a: `${a.zodiac}方日主属${a.dayMasterYinYang}、${pa.strength}：${pa.pace}。${pa.need}。`,
-      b: `${b.zodiac}方日主属${b.dayMasterYinYang}、${pb.strength}：${pb.pace}。${pb.need}。`,
-      together: a.dayMasterYinYang === b.dayMasterYinYang
-        ? '两人阴阳同调，情绪起伏容易同步：一起开心时很亮，一起低落时也容易互相带着往下沉。约好一个「低电量信号」（比如一句「今天有点累」），让对方知道该给空间还是该靠近，比硬撑着体贴有效。'
-        : '一阴一阳，节奏天然错开：一个先热、一个后暖；一个想说清楚、一个需要缓一缓。这其实是很好的缓冲，别把「她怎么不马上回应」解读成不在意，给慢的那一方留半拍，很多误会根本不会发生。'
-    };
+    // —— 情绪与相处节奏 ——（pace/need 相同时合并叙述，避免整句重复）
+    const paceSame = pa.pace === pb.pace, needSameRhythm = pa.need === pb.need;
+    const rhythm = paceSame && needSameRhythm
+      ? {
+          a: `${na}日主属${a.dayMasterYinYang}、${pa.strength}；${nb}日主属${b.dayMasterYinYang}、${pb.strength}——你俩的相处节奏几乎是同一个节拍：${pa.pace}${pa.need}`,
+          b: `节奏相同的人在一起，最难得的是「不用解释对方为什么忽然安静」。但也正因为同频，低落时容易一起沉下去、谁也不喊停。你们需要的不是磨合节奏，而是约好一个「低电量信号」（比如一句「今天有点累」），让对方知道该给空间还是该靠近。`,
+          together: '同频的伴侣要特意留一个「不同步」的出口：各自保有能独处、能找别人聊的时间，回来才不会把彼此当成唯一的情绪出口。'
+        }
+      : {
+          a: `${na}日主属${a.dayMasterYinYang}、${pa.strength}：${pa.pace}。${pa.need}。`,
+          b: `${nb}日主属${b.dayMasterYinYang}、${pb.strength}：${pb.pace}。${pb.need}。`,
+          together: a.dayMasterYinYang === b.dayMasterYinYang
+            ? '两人阴阳同调，情绪起伏容易同步：一起开心时很亮，一起低落时也容易互相带着往下沉。约好一个「低电量信号」（比如一句「今天有点累」），让对方知道该给空间还是该靠近，比硬撑着体贴有效。'
+            : '一阴一阳，节奏天然错开：一个先热、一个后暖；一个想说清楚、一个需要缓一缓。这其实是很好的缓冲，别把「她怎么不马上回应」解读成不在意，给慢的那一方留半拍，很多误会根本不会发生。'
+        };
 
     // —— 未来三个月相处小计划 ——
     const plan = [
@@ -1044,9 +1128,12 @@
     ];
 
     // —— 相处禁忌（更完整）——
+    const needLine = pa.need === pb.need
+      ? `别试图改造对方的日主本性：你俩在这一点上出奇一致——${pa.need}。相同的底色让彼此更懂，也意味着会「同缺同痛」，别指望对方补上你自己都没有的那块。`
+      : `别试图改造对方的日主本性：${na}${pa.need}，${nb}${pb.need}。这些是底色，不是可以商量改掉的毛病。`;
     const tabooRich = [
       '别把「合盘分数」当成判决书，更别在争执时拿它当论据——分数说的是默认模式，不是人的上限。',
-      `别试图改造对方的日主本性：${a.zodiac}方${pa.need}，${b.zodiac}方${pb.need}。这些是底色，不是可以商量改掉的毛病。`
+      needLine
     ];
     if (res.total >= 75) tabooRich.push('高分组合最容易犯的错是「想当然」——再默契，也要把感谢和喜欢说出口。');
     if (missingWX.length) tabooRich.push(`两人同缺「${missingWX.join('、')}」，别在彼此都短的那件事上互相指望（比如都不擅长规划时，就别等对方来安排）。`);
@@ -1084,7 +1171,9 @@
     if (kw.length < 5) kw.push('灵魂搭子', '慢热长情');
     const keywordsRich = [...new Set(kw)].slice(0, 6);
 
-    const closing = `写到这里，其实想说的只有一句：${a.zodiac}与${b.zodiac}、${a.dayMaster}与${b.dayMaster}，这些字只是古人替出生那一刻留下的记号，它们能解释你们为什么容易靠近、又容易在哪里卡住，却解释不了你们后来一起吃过的那些饭、等过的那些雨、和好时的那个拥抱。合盘给的是一张地图，路还是要两个人自己走。若这份报告里有哪一句让你想起她，就把那一句留下来；其余的，看过就好。愿你们被温柔以待，也愿你们有能力温柔待人。🌷`;
+    const dmPair = a.dayMaster === b.dayMaster ? `同为「${a.dayMaster}」` : `${a.dayMaster}与${b.dayMaster}`;
+    const zodPair = a.zodiac === b.zodiac ? `都属「${a.zodiac}」` : `${a.zodiac}与${b.zodiac}`;
+    const closing = `写到这里，其实想说的只有一句：${zodPair}、${dmPair}，这些字只是古人替出生那一刻留下的记号，它们能解释你们为什么容易靠近、又容易在哪里卡住，却解释不了你们后来一起吃过的那些饭、等过的那些雨、和好时的那个拥抱。合盘给的是一张地图，路还是要两个人自己走。若这份报告里有哪一句让你想起她，就把那一句留下来；其余的，看过就好。愿你们被温柔以待，也愿你们有能力温柔待人。🌷`;
 
     // —— 双方多角度性格画像（各 6 个切面）——
     const facetsA = pa.facets || [];
@@ -1094,7 +1183,12 @@
         <h4>${title}</h4>
         ${facets.map(f => `<div class="du-facet"><span class="du-facet-ic">${f.icon}</span><div><b>${f.title}</b><p>${f.text}</p></div></div>`).join('')}
       </div>`;
-    const facetsRich = `<p class="du-para du-facet-intro">同一个人，换个角度看会很不一样。这里从六个切面分别写她：初见时的样子、内心想要什么、压力下如何、渴望怎样被爱、藏起来的反差、相处的节奏。两张盘各写一套，不是套话模板。</p><div class="du-facet-grid">${facetsHtml(facetsA, a.zodiac + '方 · ' + a.dayMaster + '日主')}${facetsHtml(facetsB, b.zodiac + '方 · ' + b.dayMaster + '日主')}</div>`;
+    // 两张盘四柱高度重合时（如同一天不同时辰），六面画像会相似——给出解释，避免看起来像复制粘贴
+    const nearSame = a.pillars.slice(0, 3).every((p, i) => p.gan === b.pillars[i].gan && p.zhi === b.pillars[i].zhi);
+    const similarNote = nearSame
+      ? `<p class="du-facet-intro">你俩的年、月、日三柱完全相同，只有时柱不同——八字上本就是「同源」的两张盘，所以下面六个切面会有许多相像之处，这不是套模板，而是命盘确实高度重合。差别主要落在时柱（${a.pillars[3].gan}${a.pillars[3].zhi} / ${b.pillars[3].gan}${b.pillars[3].zhi}）与强弱上（${pa.strength} / ${pb.strength}），越往细节看，越能看出两份不同的性情。</p>`
+      : '';
+    const facetsRich = `<p class="du-para du-facet-intro">同一个人，换个角度看会很不一样。这里从六个切面分别写她：初见时的样子、内心想要什么、压力下如何、渴望怎样被爱、藏起来的反差、相处的节奏。两张盘各写一套，不是套话模板。</p>${similarNote}<div class="du-facet-grid">${facetsHtml(facetsA, na + ' · ' + a.dayMaster + '日主')}${facetsHtml(facetsB, nb + ' · ' + b.dayMaster + '日主')}</div>`;
 
     // —— 关系类型专属解读 ——
     const relFocus = relationFocus(a, b, pa, pb, res, rel);
@@ -1131,6 +1225,7 @@
 
   function deepReport(a, b, res, rel) {
     const pa = personDeep(a), pb = personDeep(b);
+    const [na, nb] = pairNames(a, b);
 
     // 桃花专项
     const peach = (p) => p.pillars.some(pl => ['子', '午', '卯', '酉'].includes(pl.zhi));
@@ -1157,10 +1252,14 @@
         ? '事业上观点易碰撞，但正因为互补，定好分工反而能把事做成。'
         : '事业上节奏接近，一起做点什么会很合拍，关键是把角色分清楚。';
 
-    // 深度长文
-    const deep = `${a.zodiac}与${b.zodiac}的组合，${res.summary} `
-      + `从命格看，A 方日主${a.dayMaster}（${pa.strength}，${pa.xiDesc}），B 方日主${b.dayMaster}（${pb.strength}，${pb.xiDesc}）——`
-      + `一个${pa.tone}，一个${pb.tone}。`
+    // 深度长文（tone 相同时改写同频句）
+    const deepTone = pa.tone === pb.tone
+      ? `你俩的底色出奇地一致——${pa.tone}，像照见彼此，亲近省力，也要留意别把相同的坑一起踩。`
+      : `一个${pa.tone}，一个${pb.tone}。`;
+    const deepZPair = a.zodiac === b.zodiac ? `你俩同属${a.zodiac}` : `${a.zodiac}与${b.zodiac}`;
+    const deep = `${deepZPair}的组合，${res.summary} `
+      + `从命格看，${na}日主${a.dayMaster}（${pa.strength}，${pa.xiDesc}），${nb}日主${b.dayMaster}（${pb.strength}，${pb.xiDesc}）——`
+      + deepTone
       + `你们的相处底色由生肖「${res.dimensions.zodiac.label}」、五行「${res.dimensions.wuxing.label}」、天干「${res.dimensions.gan.label}」共同织成；`
       + `年柱「${res.dimensions.fate.label}」则决定了这份缘分的深浅与经营方式。`;
 
@@ -1199,9 +1298,11 @@
       水: '灵活善变、怕被框死，给点确定性'
     };
     const talk = {
-      a: 'A（日主' + a.dayMaster + '·' + a.dayMasterWX + '）' + talkStyle[a.dayMasterWX],
-      b: 'B（日主' + b.dayMaster + '·' + b.dayMasterWX + '）' + talkStyle[b.dayMasterWX],
-      tip: '争执时先复述对方的话、确认“我听懂了”，再表达自己——误会往往死在“你根本不懂我”。'
+      a: na + '（日主' + a.dayMaster + '·' + a.dayMasterWX + '）' + talkStyle[a.dayMasterWX],
+      b: nb + '（日主' + b.dayMaster + '·' + b.dayMasterWX + '）' + talkStyle[b.dayMasterWX],
+      tip: a.dayMasterWX === b.dayMasterWX
+        ? '你俩沟通风格同源，容易「都觉得对方应该懂」——争执时更要先复述一遍对方的话、确认“我听懂了”，再表达自己，别把同频当成不用解释。'
+        : '争执时先复述对方的话、确认“我听懂了”，再表达自己——误会往往死在“你根本不懂我”。'
     };
 
     // —— 富文本扩展（关键词按得分率重新判定）——
@@ -1209,7 +1310,9 @@
 
     // —— 专属缘分词（古风签名句）——
     const unionLabel = missingWX.length ? '各有所偏' : '俱全';
-    const signature = a.zodiac + '与' + b.zodiac + '相映成趣，五行' + unionLabel + '、日主' + a.dayMaster + '/' + b.dayMaster + '遥相呼应——'
+    const dmSig = a.dayMaster === b.dayMaster ? '日主同为' + a.dayMaster : '日主' + a.dayMaster + '/' + b.dayMaster;
+    const zodSig = a.zodiac === b.zodiac ? '同属' + a.zodiac : a.zodiac + '与' + b.zodiac;
+    const signature = zodSig + '相映成趣，五行' + unionLabel + '、' + dmSig + '——'
       + '宜' + (missingWX.length ? missingWX.map(w => map[w].slice(0, 5)).join('、') : '细水长流地陪伴')
       + '，惜' + (rich.keywordsRich[0] || '彼此') + '。此缘，值得慢慢养。';
 
