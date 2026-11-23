@@ -333,6 +333,8 @@
       const n = p.elementCounts[w] || 0;
       return `<span class="solo-wx ${wxColor[w] ? '' : ''}" style="color:${wxColor[w]}">${w}${n}</span>`;
     }).join('');
+    const facets = pd.facets || [];
+    const facetHtml = facets.map(f => `<div class="solo-facet"><span class="solo-facet-ic">${f.icon}</span><div><b>${f.title}</b><p>${f.text}</p></div></div>`).join('');
     return `
       <div class="solo-card-head"><span class="solo-name">${escapeHtml(label)}</span><span class="solo-dm">日主 ${p.dayMaster} · ${pd.wx}${p.dayMasterYinYang}</span></div>
       <div class="solo-grid">
@@ -343,6 +345,7 @@
         <div><b>相处节奏</b><span>${pd.pace}</span></div>
         <div><b>五行分布</b><span class="solo-wxs">${wxBar}</span></div>
       </div>
+      ${facets.length ? `<details class="solo-facets"><summary>🎭 换个角度看她 · 六个切面（点开）</summary><div class="solo-facet-grid">${facetHtml}</div></details>` : ''}
       <p class="solo-disclaimer">※ 浅析仅供娱乐参考，不含流年运势与具体事件预测。想看两人的缘分，请用上方的双人合盘 🌷</p>`;
   }
   function bindSoloEntries(pa, pb) {
@@ -726,6 +729,7 @@
       // 章节清单：编号 / 图标 / 标题 / 正文 HTML。前 two 章默认展开，其余折叠。
       const sections = [
         { icon: '📜', title: '缘分深度长文', body: r.deepParas.map(p => `<p class="du-para">${p}</p>`).join('') },
+        { icon: '🎭', title: '性格六面 · 换个角度看她', body: r.facetsRich },
         { icon: '🧭', title: '关系里的角色分工', body: `<p class="du-para">${r.roles.a}</p><p class="du-para">${r.roles.b}</p><p class="du-para du-em">${r.roles.together}</p>` },
         { icon: '🌤️', title: '情绪与相处节奏', body: `<p class="du-para">${r.rhythm.a}</p><p class="du-para">${r.rhythm.b}</p><p class="du-para du-em">${r.rhythm.together}</p>` },
         { icon: '🌿', title: '五行调和指南', body: `<p class="du-para">${r.tuneRich}</p>` },
@@ -755,7 +759,7 @@
         { icon: '💌', title: '写给你们', body: `<p class="du-para">${r.closing}</p>` }
       ];
 
-      const ILLUS_BY_SEC = { 0: 'origin', 1: 'roles', 2: 'rhythm', 3: 'wuxing', 9: 'fortune', 12: 'lucky' };
+      const ILLUS_BY_SEC = { 0: 'origin', 2: 'roles', 3: 'rhythm', 4: 'wuxing', 10: 'fortune', 13: 'lucky' };
       const tocHtml = sections.map((s, i) => `<button type="button" class="du-toc-item" data-sec="${i}"><span class="du-toc-n">${String(i + 1).padStart(2, '0')}</span><span class="du-toc-ic">${s.icon}</span><span class="du-toc-t">${s.title}</span></button>`).join('');
       const secHtml = sections.map((s, i) => `
         <section class="du-sec${i < 2 ? ' open' : ''}" id="du-sec-${i}" data-sec="${i}">
@@ -811,6 +815,7 @@
       const TOC = [
         '双人命格详批 · 日主强弱 / 喜用 / 性格底色',
         '缘分深度长文 · 四段逐层拆解',
+        '🎭 性格六面 · 六个角度看她（初见 / 内心 / 压力 / 被爱 / 反差 / 节奏）',
         '关系里的角色分工 · 谁给、谁接',
         '情绪与相处节奏',
         '五行调和指南 · 可照着做',
@@ -828,6 +833,7 @@
       const wordCount = (r.deepParas.join('') + r.roles.a + r.roles.b + r.roles.together
         + r.rhythm.a + r.rhythm.b + r.rhythm.together + r.tuneRich
         + r.taohuaRich + r.wealthRich + r.careerRich + r.tabooRich.join('')
+        + (r.facetsRich || '').replace(/<[^>]+>/g, '')
         + r.fortune.map(y => y.themeLine + y.relation + y.notes.join('') + y.advice).join('')
         + r.plan.map(p => p.tip).join('') + r.scripts.join('') + r.closing).length;
       els.deepZone.innerHTML = `
@@ -843,9 +849,9 @@
 
           <figure class="du-fig du-fig-teaser">${TEASER_ILLUS}</figure>
           <div class="deep-preview">
-            <div class="deep-preview-head">👀 先试读一段 · 缘分深度长文（节选）</div>
-            <div class="deep-preview-body">${r.deepParas[0]} ${r.deepParas[1].slice(0, 52)}…</div>
-            <div class="deep-preview-mask"><span>🔓 解锁后阅读完整报告</span></div>
+            <div class="deep-preview-head">👀 先试读一角 · 按你们的八字现场生成</div>
+            <div class="deep-preview-body">${(preview.personA.facets && preview.personA.facets[1]) ? preview.personA.facets[1].text : r.deepParas[0].slice(0, 80)}</div>
+            <div class="deep-preview-mask"><span>🔓 解锁后看完整六个角度 + 全篇报告</span></div>
           </div>
 
           <p class="deep-free-line">${res.summary} 完整报告约 ${wordCount} 字，按你们两人的四柱单独生成、每对不同；解锁后分享图还会去掉水印，可保存高清无遮挡版。</p>
