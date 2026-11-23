@@ -717,18 +717,29 @@
     }
   }
 
+  function currentRelation() {
+    const ra = (els.relA && els.relA.value) || '恋人';
+    const rb = (els.relB && els.relB.value) || '';
+    // 两人选的不同时，以 A 为主；若有人选了更具体的类型也参考
+    return ra || rb || '恋人';
+  }
+
   function renderDeepZone(a, b, res) {
     // 每次重渲染先清掉旧的固定阅读条，避免重复
     const oldBar = $('duTopBar');
     if (oldBar) oldBar.remove();
+    const relType = currentRelation();
     if (isPairUnlocked(currentSig)) {
-      const d = B.deepReport(a, b, res);
+      const d = B.deepReport(a, b, res, relType);
       const r = d.rich;
       const nameA = safeName(els.nameA, '命主 A');
       const nameB = safeName(els.nameB, '命主 B');
       // 章节清单：编号 / 图标 / 标题 / 正文 HTML。前 two 章默认展开，其余折叠。
       const sections = [
         { icon: '📜', title: '缘分深度长文', body: r.deepParas.map(p => `<p class="du-para">${p}</p>`).join('') },
+        { icon: '💞', title: `「${({恋人:'恋人',闺蜜:'闺蜜',搭档:'搭档',其他:'你们'})[r.relKind] || '你们'}」专属解读`, body: r.relationRich },
+        { icon: '🔥', title: '冲突现场还原 · 从冷战到和好', body: r.conflictRich },
+        { icon: '🎬', title: '生活场景模拟 · 四个真实时刻', body: r.scenesRich },
         { icon: '🎭', title: '性格六面 · 换个角度看她', body: r.facetsRich },
         { icon: '🧭', title: '关系里的角色分工', body: `<p class="du-para">${r.roles.a}</p><p class="du-para">${r.roles.b}</p><p class="du-para du-em">${r.roles.together}</p>` },
         { icon: '🌤️', title: '情绪与相处节奏', body: `<p class="du-para">${r.rhythm.a}</p><p class="du-para">${r.rhythm.b}</p><p class="du-para du-em">${r.rhythm.together}</p>` },
@@ -759,7 +770,7 @@
         { icon: '💌', title: '写给你们', body: `<p class="du-para">${r.closing}</p>` }
       ];
 
-      const ILLUS_BY_SEC = { 0: 'origin', 2: 'roles', 3: 'rhythm', 4: 'wuxing', 10: 'fortune', 13: 'lucky' };
+      const ILLUS_BY_SEC = { 0: 'origin', 5: 'roles', 6: 'rhythm', 7: 'wuxing', 13: 'fortune', 16: 'lucky' };
       const tocHtml = sections.map((s, i) => `<button type="button" class="du-toc-item" data-sec="${i}"><span class="du-toc-n">${String(i + 1).padStart(2, '0')}</span><span class="du-toc-ic">${s.icon}</span><span class="du-toc-t">${s.title}</span></button>`).join('');
       const secHtml = sections.map((s, i) => `
         <section class="du-sec${i < 2 ? ' open' : ''}" id="du-sec-${i}" data-sec="${i}">
@@ -810,11 +821,15 @@
     } else {
       const token = shortToken(currentSig);
       // 未解锁也先把报告算出来：让用户「看得见」自己将要拿到什么，而不是只看一串功能名
-      const preview = B.deepReport(a, b, res);
+      const preview = B.deepReport(a, b, res, relType);
       const r = preview.rich;
+      const relTag = ({恋人:'恋人',闺蜜:'闺蜜',搭档:'搭档',其他:'你们'})[r.relKind] || '你们';
       const TOC = [
         '双人命格详批 · 日主强弱 / 喜用 / 性格底色',
         '缘分深度长文 · 四段逐层拆解',
+        `💞 「${relTag}」专属解读 · 按你选的关系类型写`,
+        '🔥 冲突现场还原 · 从冷战到和好的完整过程',
+        '🎬 生活场景模拟 · 旅行 / 深夜聊天 / 生病照顾 / 花钱',
         '🎭 性格六面 · 六个角度看她（初见 / 内心 / 压力 / 被爱 / 反差 / 节奏）',
         '关系里的角色分工 · 谁给、谁接',
         '情绪与相处节奏',
@@ -843,14 +858,14 @@
           <p class="deep-anchor">🌸 上面这些——缘分分、四柱排盘、六维解读、五行分布、相处锦囊、诗词与小知识——<strong>已经全部免费给你了</strong>，不用花一分钱。</p>
 
           <div class="deep-toc">
-            <div class="deep-toc-head">📖 深度报告目录 <span>已按你们的八字生成 ✓</span></div>
+            <div class="deep-toc-head">📖 深度报告目录 <span>已按你们的八字 +「${relTag}」关系定制 ✓</span></div>
             <ul>${TOC.map((t, i) => `<li><span class="toc-n">${String(i + 1).padStart(2, '0')}</span><span class="toc-t">${t}</span><span class="toc-lock">🔒</span></li>`).join('')}</ul>
           </div>
 
           <figure class="du-fig du-fig-teaser">${TEASER_ILLUS}</figure>
           <div class="deep-preview">
-            <div class="deep-preview-head">👀 先试读一角 · 按你们的八字现场生成</div>
-            <div class="deep-preview-body">${(preview.personA.facets && preview.personA.facets[1]) ? preview.personA.facets[1].text : r.deepParas[0].slice(0, 80)}</div>
+            <div class="deep-preview-head">👀 先试读一角 ·「${relTag}」专属解读</div>
+            <div class="deep-preview-body">${r.relationRich.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 110)}…</div>
             <div class="deep-preview-mask"><span>🔓 解锁后看完整六个角度 + 全篇报告</span></div>
           </div>
 
@@ -1364,6 +1379,16 @@
 
   els.calcBtn.addEventListener('click', doCalc);
   els.demoBtn.addEventListener('click', fillDemo);
+  // 关系类型改动后，若已出结果，静默刷新免费锦囊与深度报告（无需重算八字）
+  [els.relA, els.relB].forEach(sel => {
+    if (!sel) return;
+    sel.addEventListener('change', () => {
+      if (!lastCalc) return;
+      const { pa, pb, res } = lastCalc;
+      buildAdvice(pa, pb, res.dimensions, res.total, currentRelation());
+      renderDeepZone(pa, pb, res);
+    });
+  });
   els.shareBtn.addEventListener('click', saveShare);
   els.resetBtn.addEventListener('click', () => {
     els.result.hidden = true;

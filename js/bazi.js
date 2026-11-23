@@ -766,11 +766,112 @@
   }
 
   // ============================================================
+  // 差异化新角度：避开「相处/沟通/被爱方式」等已写滥的主题，
+  // 聚焦关系类型专属 + 具体生活场景模拟，全部按命盘特征组合生成。
+  // ============================================================
+
+  // —— 关系类型专属解读（恋人 / 闺蜜 / 搭档 / 其他）——
+  function relationFocus(a, b, pa, pb, res, rel) {
+    const kind = ['恋人', '闺蜜', '搭档'].indexOf(rel) >= 0 ? rel : '其他';
+    const aName = a.zodiac + '方', bName = b.zodiac + '方';
+    const strong = res.total >= 68, mid = res.total >= 45;
+    const lib = {
+      恋人: {
+        core: '恋人之间，最想问的其实是「我们会不会一直这样」。从盘上看，你们吸引的方式与维系的方式并不完全相同——热烈和安稳各占一头，所以别用某一刻的浓度去衡量整段感情。',
+        advice: strong
+          ? '这组配置适合认真谈长远：把「以后」聊具体一点（住哪里、怎么过日子、家人怎么看），反而让彼此更安心。越是合拍，越要把喜欢说出口，别让默契变成默认。'
+          : mid
+            ? '感情是慢慢焐热的那种，靠固定的小仪式养着最稳：睡前一段话、周末一顿饭。别急着定义关系，把日常过顺了，答案自然浮现。'
+            : '缘分偏淡不代表不能爱，只是需要更多主动的表达与耐心。少一点「她应该懂」，多一点「我想让你知道」，把心意说明白，比什么都强。',
+        risk: '恋人最容易在「你把温柔给了别人」和「你没以前那么上心」上较劲。吃醋时先问自己是不是累了，再和对方好好说——多数时候，那只是电量不足，不是不爱了。'
+      },
+      闺蜜: {
+        core: '闺蜜这份缘，贵在「不用说也懂」。你们的盘里既有相似的地方，也有互补的地方：相似让你们聊得来，互补让你们在对方身上看到自己没有的那一面——这正是友谊最耐看的部分。',
+        advice: strong
+          ? '这是能互相托底的友谊。别把对方的付出当理所当然，也别因为太熟就省掉感谢。真正的闺蜜，是各自过得好，也常常见面。'
+          : mid
+            ? '友谊靠「常联系」养着，不一定要天天聊，但别让 Silence 变成生疏。一个月一次的见面或长聊，就能把关系稳住。'
+            : '再好的朋友也需要经营。少一点比较、多一点捧场，她难过时你在、她得意时你也真心高兴，这段关系就会越来越瓷实。',
+        risk: '闺蜜之间最容易因为「她没第一时间告诉我」而受伤。记住：不是所有沉默都是疏远，每个人处理情绪的方式不同，问一句比闷着强。'
+      },
+      搭档: {
+        core: '做搭档，看的不是合不合得来，而是「能不能一起把事做成」。你们的分工气质从盘里就能看出来：有人擅长开局、有人擅长收尾，有人想方向、有人盯细节——把角色摆对，战斗力就出来了。',
+        advice: strong
+          ? '这组配置适合长期协作。开局时就把「谁拍板、谁执行、怎么复盘」写清楚，默契加上规则，能走得很远。'
+          : mid
+            ? '协作的关键是把边界画出来：各自负责的领域自己说了算，交叉的事再一起商量。省下的内耗，都是产能。'
+            : '节奏不完全一致时，别急着互相改造。先磨合出一套双方都舒服的协作节奏，慢一点反而更稳。',
+        risk: '搭档最忌「既想一起做、又不肯放手」。要么明确分工各自负责，要么彻底交出去别插手——最怕的是权责不清，最后谁都觉得自己在替对方擦屁股。'
+      },
+      其他: {
+        core: '无论你们把这段关系叫作什么，盘里藏着的都是同一种东西：两个人带着各自的底色靠近，在相似处共鸣，在差异处成长。名字不重要，相处得舒服才重要。',
+        advice: strong
+          ? '这组配置很合拍，好好珍惜。不必急着给关系贴标签，顺着舒服的节奏走，反而能走得更久。'
+          : mid
+            ? '关系在路上，慢慢来就好。多一点好奇、少一点预设，你们还有不少彼此不了解的惊喜。'
+            : '缘分有深有浅，不必强求。能舒服地相处、从对方身上学到东西，本身就是收获。',
+        risk: '最怕的是用一种关系的标准去要求另一种。想清楚你们彼此期待的是什么，把默认期待摊开说，很多别扭就不存在了。'
+      }
+    };
+    const L = lib[kind];
+    return { kind, core: L.core, advice: L.advice, risk: L.risk };
+  }
+
+  // —— 冲突现场还原：从冷战到和好的完整流程 ——
+  function conflictFlow(a, b, pa, pb, res) {
+    const d = res.dimensions;
+    const clash = d.zhi.label.includes('冲') || d.wuxing.label.includes('相克') || d.gan.label.includes('相制');
+    const coolA = pa.strength === '偏旺' ? '先冷着、把话憋在心里' : '当场不吭声、事后反复想';
+    const coolB = pb.strength === '偏旺' ? '先冷着、把话憋在心里' : '当场不吭声、事后反复想';
+    const returnA = pa.tenGods === '食伤' || pa.tenGods === '火'
+      ? '一个玩笑或一句软话破冰' : '默默做点实事（倒杯水、把事办好）当台阶';
+    const returnB = pb.tenGods === '食伤' || pb.tenGods === '火'
+      ? '一个玩笑或一句软话破冰' : '默默做点实事（倒杯水、把事办好）当台阶';
+    return {
+      start: clash
+        ? '你们的分歧往往来得挺快：一个观点鲜明不肯让，另一个也有主意，几句话不合就上头。导火索常常不是那件事本身，而是「你那语气」。'
+        : '你们平日里不太容易吵起来，真有分歧时更像是突然的沉默——谁都不想先破坏气氛，于是话都憋着。',
+      cold: `${a.zodiac}方多是「${coolA}」，${b.zodiac}方多是「${coolB}」。这半拍到半天的冷却期不是坏事，别急着在这时候讲道理——先各自待着，情绪过了头再谈。`,
+      return: `和好的方式也不同：${a.zodiac}方偏向「${returnA}」，${b.zodiac}方偏向「${returnB}」。认出对方的和好信号很重要——她递台阶时，就顺着下，别追着问「你到底错在哪」。`,
+      rule: '给你们定一条通用规矩：吵完 24 小时内，无论谁对谁错，先说一句「我不是想跟你吵」。这句不是认输，是把关系从对立里捞出来——冷战的伤害，往往比那件事本身大得多。'
+    };
+  }
+
+  // —— 一起做事的场景模拟（挑 3 个最贴合命盘的组合）——
+  function lifeScenes(a, b, pa, pb, res) {
+    const d = res.dimensions;
+    const sceneLib = [
+      {
+        key: '一起旅行', icon: '🧳',
+        when: true,
+        text: `${d.zhi.label.includes('合') || d.zodiac.label.includes('合') ? '你们的地支相合，一起出门的默契是加分项' : '一起出门是最容易看清彼此节奏的机会'}：${a.zodiac}方偏「${pa.tenGods === '财' || pa.tenGods === '官杀' ? '提前把行程排得妥妥的' : '随性走走看看、临时起意'}」，${b.zodiac}方偏「${pb.tenGods === '财' || pb.tenGods === '官杀' ? '喜欢有个明确计划' : '走到哪算哪、享受意外'}」。出发前先把「一定要去的点」和「随便逛逛的时间」分开，一个负责订票导航，一个负责发现路边的小店，各司其职最开心。`
+      },
+      {
+        key: '深夜聊天', icon: '🌙',
+        when: true,
+        text: `深夜是你们最容易交心的时段。${a.zodiac}方${pa.dayMasterYinYang === '阴' ? '心思细、容易被一句关心戳中' : '白天要强，夜里才卸下防备'}，${b.zodiac}方${pb.dayMasterYinYang === '阴' ? '想得多、睡前最容易翻来覆去' : '嘴上不说，夜深时才肯讲真话'}。这样的时刻别用来算旧账、聊压力，多讲点没用的废话和心里的软话——关系的温度，常常是在这些「不解决问题」的聊天里攒起来的。`
+      },
+      {
+        key: '生病照顾', icon: '🩹',
+        when: true,
+        text: `一方不舒服时，最能看出照顾的方式对不对。${a.zodiac}方需要「${pa.need.replace('最需要的是', '').replace(/[「」]/g, '')}」，${b.zodiac}方需要「${pb.need.replace('最需要的是', '').replace(/[「」]/g, '')}」。别用自己的方式硬套对方：想安静的就别一直追问，需要回应的就别晾着。照顾这件事，问一句「你现在想要我怎么做」，比自作主张周到得多。`
+      },
+      {
+        key: '钱与计划', icon: '💰',
+        when: true,
+        text: `一起花钱、一起做计划时，${a.zodiac}方偏「${pa.tenGods === '财' ? '有账算得很清楚的务实派' : '差不多就行、不太计较'}」，${b.zodiac}方偏「${pb.tenGods === '财' ? '把钱花在刀刃上的计划派' : '随性、够用就好'}」。差异本身不是问题，藏着不说才是。大额支出先说好各自的比例和底线，小额就别一笔笔算——把规则定在前面，感情里就少很多算计的委屈。`
+      }
+    ];
+    // 四个场景全给：一起旅行 / 深夜聊天 / 生病照顾 / 钱与计划
+    return sceneLib.filter(s => s.when);
+  }
+
+  // ============================================================
   // 深度报告 · 富文本扩展
   // 不改动 deepReport 原有字段与算法，只附加更详尽的分段长文、
   // 专项解读、角色分工、情绪节奏、相处计划与可直接照着说的话术。
   // ============================================================
-  function buildRichReport(a, b, res, pa, pb) {
+  function buildRichReport(a, b, res, pa, pb, rel) {
     const d = res.dimensions;
     const rateOf = (x) => x.score / x.max;
     const ranked = [
@@ -893,9 +994,6 @@
       '别把「合盘分数」当成判决书，更别在争执时拿它当论据——分数说的是默认模式，不是人的上限。',
       `别试图改造对方的日主本性：${a.zodiac}方${pa.need}，${b.zodiac}方${pb.need}。这些是底色，不是可以商量改掉的毛病。`
     ];
-    if (d.zhi.label.includes('冲')) tabooRich.push('避免在情绪最满的时候争对错，先各自冷静二十分钟，再回来把事说完。');
-    if (d.wuxing.label.includes('相克')) tabooRich.push('少用「你总是」「你从来」，把评价换成具体的一次事件，火气会小一半。');
-    if (d.gan.label.includes('相制')) tabooRich.push('意见不合时别用反问句开场，试试「我理解你的意思，我担心的是……」。');
     if (res.total >= 75) tabooRich.push('高分组合最容易犯的错是「想当然」——再默契，也要把感谢和喜欢说出口。');
     if (missingWX.length) tabooRich.push(`两人同缺「${missingWX.join('、')}」，别在彼此都短的那件事上互相指望（比如都不擅长规划时，就别等对方来安排）。`);
     tabooRich.push('不要把第三方的评价带进两个人的关系里，命理、朋友、家人都只是参考，过日子的是你们。');
@@ -944,16 +1042,37 @@
       </div>`;
     const facetsRich = `<p class="du-para du-facet-intro">同一个人，换个角度看会很不一样。这里从六个切面分别写她：初见时的样子、内心想要什么、压力下如何、渴望怎样被爱、藏起来的反差、相处的节奏。两张盘各写一套，不是套话模板。</p><div class="du-facet-grid">${facetsHtml(facetsA, a.zodiac + '方 · ' + a.dayMaster + '日主')}${facetsHtml(facetsB, b.zodiac + '方 · ' + b.dayMaster + '日主')}</div>`;
 
+    // —— 关系类型专属解读 ——
+    const relFocus = relationFocus(a, b, pa, pb, res, rel);
+    const relLabel = { 恋人: '恋人 / 情侣', 闺蜜: '闺蜜 / 知己', 搭档: '事业搭档', 其他: '你们的关系' }[relFocus.kind];
+    const relationRich = `<p class="du-para du-facet-intro">这一段是照着你们选的「${relLabel}」写的——同样两张盘，换成别的关系，说法会不一样。</p>`
+      + `<div class="du-rel-card"><div class="du-rel-block"><b>💞 这段关系的核心</b><p>${relFocus.core}</p></div>`
+      + `<div class="du-rel-block"><b>🌱 怎么经营更好</b><p>${relFocus.advice}</p></div>`
+      + `<div class="du-rel-block"><b>⚠️ 最容易卡住的地方</b><p>${relFocus.risk}</p></div></div>`;
+
+    // —— 冲突现场还原 ——
+    const cf = conflictFlow(a, b, pa, pb, res);
+    const conflictRich = `<div class="du-flow">`
+      + `<div class="du-flow-step"><span class="du-flow-n">1</span><div><b>🔥 通常怎么吵起来</b><p>${cf.start}</p></div></div>`
+      + `<div class="du-flow-step"><span class="du-flow-n">2</span><div><b>🧊 冷战时各自的样子</b><p>${cf.cold}</p></div></div>`
+      + `<div class="du-flow-step"><span class="du-flow-n">3</span><div><b>🕊️ 谁先递台阶、怎么和好</b><p>${cf.return}</p></div></div>`
+      + `<div class="du-flow-step du-flow-rule"><span class="du-flow-n">✓</span><div><b>📌 给你们的一条规矩</b><p>${cf.rule}</p></div></div></div>`;
+
+    // —— 生活场景模拟 ——
+    const scenes = lifeScenes(a, b, pa, pb, res);
+    const scenesRich = `<div class="du-scenes">${scenes.map(s => `<div class="du-scene"><div class="du-scene-h"><span>${s.icon}</span><b>${s.key}</b></div><p>${s.text}</p></div>`).join('')}</div>`;
+
     return {
       deepParas, taohuaRich, wealthRich, careerRich, tuneRich,
       roles, rhythm, plan, tabooRich, scripts, facetsRich,
+      relationRich, conflictRich, scenesRich, relKind: relFocus.kind,
       luckyAvoid, keywordsRich, closing,
       strongest, weakest, missingWX,
       fortune: fortuneYears(a, b, pa, pb)
     };
   }
 
-  function deepReport(a, b, res) {
+  function deepReport(a, b, res, rel) {
     const pa = personDeep(a), pb = personDeep(b);
 
     // 桃花专项
@@ -1029,7 +1148,7 @@
     };
 
     // —— 富文本扩展（关键词按得分率重新判定）——
-    const rich = buildRichReport(a, b, res, pa, pb);
+    const rich = buildRichReport(a, b, res, pa, pb, rel);
 
     // —— 专属缘分词（古风签名句）——
     const unionLabel = missingWX.length ? '各有所偏' : '俱全';

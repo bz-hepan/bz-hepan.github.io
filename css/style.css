@@ -1305,8 +1305,28 @@ body.mood-spring .bg-orbs { filter: hue-rotate(-12deg) saturate(1.1); }
 .du-facet-ic { font-size: 17px; flex: 0 0 22px; line-height: 1.3; }
 .du-facet b { display: block; font-size: 12.5px; color: var(--purple-deep); margin-bottom: 3px; }
 .du-facet p { margin: 0; font-size: 12.3px; color: var(--ink); line-height: 1.65; text-align: justify; }
+/* 关系类型专属解读 */
+.du-rel-card { display: grid; gap: 12px; }
+.du-rel-block { background: rgba(255,255,255,.55); border: 1px solid var(--card-line); border-left: 3px solid var(--pink-deep); border-radius: 10px; padding: 11px 14px; }
+.du-rel-block b { display: block; font-size: 13px; color: var(--pink-deep); margin-bottom: 5px; }
+.du-rel-block p { margin: 0; font-size: 12.5px; color: var(--ink); line-height: 1.7; text-align: justify; }
+/* 冲突现场还原流程 */
+.du-flow { display: grid; gap: 12px; }
+.du-flow-step { display: flex; gap: 11px; background: rgba(255,255,255,.5); border: 1px solid var(--card-line); border-radius: 10px; padding: 11px 13px; }
+.du-flow-n { flex: 0 0 26px; height: 26px; border-radius: 50%; background: rgba(226,85,143,.14); color: var(--pink-deep); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.du-flow-step b { display: block; font-size: 12.8px; color: var(--purple-deep); margin-bottom: 4px; }
+.du-flow-step p { margin: 0; font-size: 12.3px; color: var(--ink); line-height: 1.65; text-align: justify; }
+.du-flow-rule { background: linear-gradient(135deg, rgba(63,168,106,.1), rgba(226,85,143,.07)); border-color: rgba(63,168,106,.35); }
+.du-flow-rule .du-flow-n { background: rgba(63,168,106,.2); color: var(--wx-mu); }
+/* 生活场景模拟 */
+.du-scenes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.du-scene { background: rgba(255,255,255,.55); border: 1px solid var(--card-line); border-radius: 10px; padding: 12px 14px; }
+.du-scene-h { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.du-scene-h span { font-size: 18px; }
+.du-scene-h b { font-size: 13px; color: var(--pink-deep); }
+.du-scene p { margin: 0; font-size: 12.3px; color: var(--ink); line-height: 1.65; text-align: justify; }
 @media (max-width: 640px) {
-  .du-facet-grid, .solo-facet-grid { grid-template-columns: 1fr; }
+  .du-facet-grid, .solo-facet-grid, .du-scenes { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   .du-sec-body, .du-sec-arrow, .du-progress-bar, .du-backtop, .du-readingbar, .du-rb-fill { transition: none; }
