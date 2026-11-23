@@ -970,9 +970,38 @@
     els.shareBtn.style.display = 'none';
     if (themeSel) themeSel.style.display = 'none';
     els.shareHint.style.display = 'none';
+
+    // 分享图专用样式：html2canvas 不支持 backdrop-filter，半透明毛玻璃卡片渲染后会发白、
+    // 文字对比度极低。渲染期间临时把卡片改成不透明白底、去掉滤镜、隐藏固定定位的阅读条和
+    // 装饰动画层，渲染完立即移除，不影响用户实际看到的页面。
+    const shotStyle = document.createElement('style');
+    shotStyle.id = 'shareShotStyle';
+    shotStyle.textContent = `
+      .result-area *, .result-area { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+      .result-area [class*="card"], .result-area [class*="hero"], .result-area [class*="box"],
+      .result-area [class*="pillars"], .result-area [class*="dim-row"], .result-area [class*="pillar"],
+      .result-area [class*="deep-"], .result-area [class*="poem"], .result-area [class*="wx"],
+      .result-area [class*="tip"], .result-area [class*="verdict"], .result-area [class*="solo"],
+      .result-area [class*="timeline"], .result-area [class*="lucky"], .result-area [class*="script"] {
+        background-color: #fff !important;
+        background-image: none !important;
+        border-color: rgba(180,140,190,.28) !important;
+        box-shadow: 0 2px 12px rgba(124,91,191,.10) !important;
+      }
+      .result-area .du-readingbar, .result-area .du-backtop,
+      .result-area .hdr-sparks, .result-area .rt-sparks, .result-area .petal-layer,
+      .result-area [class*="watermark"]:not(.share-watermark) { display: none !important; }
+      .result-area *, .result-area *::before, .result-area *::after { animation: none !important; transition: none !important; }
+    `;
+    document.head.appendChild(shotStyle);
     node.style.background = th.bg;
     try {
-      const canvas = await html2canvas(node, { scale: 2, backgroundColor: th.solid, useCORS: true, logging: false });
+      // 大图保护：canvas 边长超过浏览器上限（约 16384px）会生成空白。
+      // 按比例下调 scale，保证最长边不超过 12000px。
+      const rect = node.getBoundingClientRect();
+      const longest = Math.max(rect.width, rect.height);
+      const scale = Math.max(1, Math.min(2, 12000 / Math.max(1, longest)));
+      const canvas = await html2canvas(node, { scale, backgroundColor: th.solid, useCORS: true, logging: false });
       const link = document.createElement('a');
       link.download = '双女八字合盘_' + Date.now() + '.png';
       link.href = canvas.toDataURL('image/png');
@@ -984,9 +1013,11 @@
     } finally {
       if (wm && wm.parentNode) wm.parentNode.removeChild(wm);
       node.style.background = prevBg;
+      if (shotStyle.parentNode) shotStyle.parentNode.removeChild(shotStyle);
       els.shareBtn.style.display = prevBtn;
       const themeSelBack = $('shareTheme');
       if (themeSelBack) themeSelBack.style.display = '';
+      els.shareHint.style.display = '';
       els.shareBtn.disabled = false;
       setTimeout(() => { els.shareHint.hidden = true; }, 2500);
     }
